@@ -1,0 +1,14 @@
+[project]
+name = "prediction-market-frameworks"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.12.13",
+    "py-clob-client>=0.23.0",
+]
+
+[tool.uv.workspace]
+members = [
+]
