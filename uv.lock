@@ -554,12 +554,14 @@ source = { virtual = "." }
 dependencies = [
     { name = "aiohttp" },
     { name = "py-clob-client" },
+    { name = "py-order-utils" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.12.13" },
     { name = "py-clob-client", specifier = ">=0.23.0" },
+    { name = "py-order-utils", specifier = ">=0.3.2" },
 ]
 
 [[package]]

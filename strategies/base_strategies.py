@@ -1,10 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict
+from typing import List, Dict, Optional
+
+from connectors.data.abstract_data_connector import DataConnector
+from connectors.execution.abstract_execution_connector import ExecutionConnector
+
 
 class BaseStrategy(ABC):
     def __init__(self,
-                 data_conns: List = None,
-                 exec_conns: List = None):
+                 data_conns: Optional[List[DataConnector]] = None,
+                 exec_conns: Optional[List[ExecutionConnector]] = None):
         self.data_conns = data_conns or []
         self.exec_conns = exec_conns or []
 
