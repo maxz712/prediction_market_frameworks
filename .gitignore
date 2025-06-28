@@ -1,3 +1,4 @@
-# Virtual Environments
-.venv
+.env
 .idea
+.venv
+testing.py

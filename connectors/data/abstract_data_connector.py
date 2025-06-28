@@ -5,6 +5,6 @@ class DataConnector(Connector, ABC):
     """Interface for data sources (market, news)."""
 
     @abstractmethod
-    def get_market_data(self):
+    def get_order_book(self):
         """Return fresh market data (price, orderbook, etc.)."""
         pass
