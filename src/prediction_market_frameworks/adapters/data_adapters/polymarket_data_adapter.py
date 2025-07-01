@@ -10,6 +10,7 @@ from src.prediction_market_frameworks.adapters.polymarket_configs import Polymar
 from py_clob_client.client import ClobClient
 from py_clob_client.clob_types import ApiCreds, OrderBookSummary
 
+from src.prediction_market_frameworks.core.models.order_book import BookLevel, OrderBook
 from src.prediction_market_frameworks.ports.data_port import DataPort
 
 
@@ -56,9 +57,39 @@ class PolymarketDataAdapter(DataPort):
         self._ensure_connected()
         return self.client.get_market(condition_id)
 
-    def get_order_book(self, token_id: str) -> OrderBookSummary:
+    def get_order_book(self, token_id: str) -> OrderBook:
         self._ensure_connected()
-        return self.client.get_order_book(token_id)
+        summary = self.client.get_order_book(token_id)
+        bids = self._convert_levels(summary.bids)
+        asks = self._convert_levels(summary.asks)
+        return OrderBook(
+            market_id=summary.market,
+            asset_id=summary.asset_id,
+            timestamp=int(summary.timestamp),
+            hash=summary.hash,
+            bids=bids,
+            asks=asks
+        )
+
+    def _convert_levels(self, raw_levels) -> list[BookLevel]:
+        """
+        Convert a list of summary-level objects to sorted BookLevel list.
+        raw_levels: sequence of objects with 'price' and 'size' (strings or numbers).
+        """
+        # Parse price and volume
+        parsed = [(float(r.price), float(r.size)) for r in raw_levels]
+
+        # Sort: bids descending, asks ascending
+        # Determine side by checking first price (but typically adapter knows side)
+        is_bid = bool(parsed and parsed[0][0] >= parsed[-1][0])
+        sorted_levels = sorted(parsed, key=lambda p: -p[0]) if is_bid else sorted(parsed, key=lambda p: p[0])
+
+        levels = []
+        total = 0.0
+        for price, vol in sorted_levels:
+            total += vol
+            levels.append(BookLevel(price=price, volume=vol, total=total))
+        return levels
 
     def get_active_events(self, limit: int = 100) -> List[Dict]:
         """

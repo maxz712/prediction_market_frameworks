@@ -1,7 +1,6 @@
 
 from abc import ABC, abstractmethod
 
-from src.prediction_market_frameworks.adapters.abstract_adapter import Adapter
 from src.prediction_market_frameworks.ports.port import Port
 
 
