@@ -1,21 +1,25 @@
 # src/prediction_market_frameworks/core/models.py
 
 from __future__ import annotations
-from dataclasses import dataclass
 from typing import List, Optional, Iterator
+from pydantic import BaseModel, field_validator
 
-@dataclass(frozen=True)
-class BookLevel:
+class BookLevel(BaseModel):
     price: float
     volume: float
     total: float  # cumulative volume at or before this level
 
-    def __post_init__(self):
-        if self.price < 0 or self.volume < 0 or self.total < 0:
+    @field_validator('price', 'volume', 'total')
+    @classmethod
+    def validate_non_negative(cls, v: float) -> float:
+        if v < 0:
             raise ValueError("Price, volume, and total must be non-negative")
+        return v
 
-@dataclass(frozen=True)
-class OrderBook:
+    class Config:
+        frozen = True
+
+class OrderBook(BaseModel):
     market_id: str
     asset_id: str
     timestamp: int
@@ -60,3 +64,6 @@ class OrderBook:
             yield from self.asks
         else:
             raise ValueError("side must be 'bids' or 'asks'")
+
+    class Config:
+        frozen = True
