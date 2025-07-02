@@ -161,8 +161,8 @@ class Event(BaseModel):
     slug: str
     title: str
     description: str
-    start_date: datetime = Field(alias="startDate")
-    creation_date: datetime = Field(alias="creationDate")
+    start_date: Optional[datetime] = Field(default=None, alias="startDate")
+    creation_date: Optional[datetime] = Field(default=None, alias="creationDate")
     end_date: datetime = Field(alias="endDate")
     image: str
     icon: str
