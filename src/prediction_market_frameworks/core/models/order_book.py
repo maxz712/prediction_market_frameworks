@@ -1,7 +1,7 @@
 # src/prediction_market_frameworks/core/models.py
 
 from __future__ import annotations
-from typing import List, Optional, Iterator
+from typing import List, Optional, Iterator, Any
 from pydantic import BaseModel, field_validator
 
 class BookLevel(BaseModel):
@@ -64,6 +64,30 @@ class OrderBook(BaseModel):
             yield from self.asks
         else:
             raise ValueError("side must be 'bids' or 'asks'")
+
+    @classmethod
+    def from_raw_data(cls, market_id: str, asset_id: str, timestamp: int, hash: str, 
+                      raw_bids: List[Any], raw_asks: List[Any]) -> 'OrderBook':
+        """Create OrderBook from raw bid/ask data with level conversion."""
+        def convert_levels(raw_levels: List[Any], is_bid: bool = False) -> List[dict]:
+            parsed = [(float(r.price), float(r.size)) for r in raw_levels]
+            sorted_levels = sorted(parsed, key=lambda p: -p[0]) if is_bid else sorted(parsed, key=lambda p: p[0])
+            
+            levels = []
+            total = 0.0
+            for price, vol in sorted_levels:
+                total += vol
+                levels.append({"price": price, "volume": vol, "total": total})
+            return levels
+        
+        return cls.model_validate({
+            "market_id": market_id,
+            "asset_id": asset_id,
+            "timestamp": timestamp,
+            "hash": hash,
+            "bids": convert_levels(raw_bids, is_bid=True),
+            "asks": convert_levels(raw_asks, is_bid=False)
+        })
 
     class Config:
         frozen = True
