@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
-from src.prediction_market_frameworks.ports.port import Port
+from src.data_frameworks.ports.base_port import BasePort
 
 
-class ExecutorPort(Port, ABC):
+class ExecutorPort(BasePort, ABC):
     """Interface for submitting and managing trades."""
 
     @abstractmethod

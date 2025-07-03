@@ -3,10 +3,10 @@ from py_clob_client.clob_types import ApiCreds, OrderBookSummary
 
 from .gamma_client import GammaClient
 from .clob_client import ClobClient
-from src.prediction_market_frameworks.adapters.configs.polymarket_configs import PolymarketConfig
-from src.prediction_market_frameworks.core.models.event import Event
-from src.prediction_market_frameworks.core.models.market import Market
-from src.prediction_market_frameworks.core.models.order_book import OrderBook
+from ..configs.polymarket_configs import PolymarketConfig
+from ...core.models.event import Event
+from ...core.models.market import Market
+from ...core.models.order_book import OrderBook
 
 
 class PolymarketClient:
@@ -112,6 +112,23 @@ class PolymarketClient:
     def cancel_all_orders(self) -> Dict[str, Any]:
         """Cancel all orders."""
         return self.clob_client.cancel_all()
+    
+    # Trading execution methods
+    def submit_market_order(self, token_id: str, side: str, size: float) -> Dict[str, Any]:
+        """Submit a market order for immediate execution."""
+        return self.clob_client.submit_market_order(token_id, side, size)
+    
+    def submit_limit_order_gtc(self, token_id: str, side: str, size: float, price: float) -> Dict[str, Any]:
+        """Submit a limit order that is good till cancellation (GTC)."""
+        return self.clob_client.submit_limit_order_gtc(token_id, side, size, price)
+    
+    def get_open_orders(self, market: Optional[str] = None) -> Dict[str, Any]:
+        """Get current open orders for the authenticated user."""
+        return self.clob_client.get_open_orders(market)
+    
+    def get_current_user_position(self, market: Optional[str] = None) -> Dict[str, Any]:
+        """Get current user position."""
+        return self.clob_client.get_current_user_position(market)
     
     # Analytics and statistics methods (CLOB API)
     def get_market_statistics(self, market_id: str) -> Dict[str, Any]:

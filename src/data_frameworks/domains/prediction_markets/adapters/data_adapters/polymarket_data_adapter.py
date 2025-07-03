@@ -1,23 +1,30 @@
 from typing import List, Optional
 
-from src.prediction_market_frameworks.adapters.configs.polymarket_configs import PolymarketConfig
-from src.prediction_market_frameworks.adapters.clients.polymarket_client import PolymarketClient
+from ..configs.polymarket_configs import PolymarketConfig
+from ..clients.polymarket_client import PolymarketClient
 
-from src.prediction_market_frameworks.core.models.order_book import OrderBook
-from src.prediction_market_frameworks.core.models.event import Event
-from src.prediction_market_frameworks.core.models.market import Market
-from src.prediction_market_frameworks.ports.data_port import DataPort
+from ...core.models.order_book import OrderBook
+from ...core.models.event import Event
+from ...core.models.market import Market
+from ...ports.data_port import DataPort
 
 
 class PolymarketDataAdapter(DataPort):
     def __init__(self, config: Optional[PolymarketConfig] = None):
         self.client = PolymarketClient(config)
+        self._connected = False
 
     def connect(self):
-        pass
+        """Connect to Polymarket APIs."""
+        self._connected = True
 
     def disconnect(self):
-        pass
+        """Disconnect from Polymarket APIs."""
+        self._connected = False
+
+    def health_check(self) -> bool:
+        """Check if the adapter is healthy and connected."""
+        return self._connected and self.client is not None
 
     def get_market(self, condition_id: str) -> Market:
         return self.client.get_market(condition_id)
