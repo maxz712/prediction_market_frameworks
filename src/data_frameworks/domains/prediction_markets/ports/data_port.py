@@ -2,10 +2,10 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from src.data_frameworks.ports.base_port import BasePort
+from src.data_frameworks.domains.prediction_markets.ports.orchestrator_port import OrchestratorPort
 
 
-class DataPort(BasePort, ABC):
+class DataPort(OrchestratorPort, ABC):
     """Interface for prediction market data sources."""
 
     @abstractmethod
