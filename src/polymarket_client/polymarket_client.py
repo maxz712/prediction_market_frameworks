@@ -3,10 +3,10 @@ from py_clob_client.clob_types import ApiCreds, OrderBookSummary
 
 from .gamma_client import GammaClient
 from .clob_client import ClobClient
-from ..configs.polymarket_configs import PolymarketConfig
-from ...core.models.event import Event
-from ...core.models.market import Market
-from ...core.models.order_book import OrderBook
+from src.polymarket_client.configs.polymarket_configs import PolymarketConfig
+from src.polymarket_client.models.event import Event
+from src.polymarket_client.models.market import Market
+from src.polymarket_client.models.order_book import OrderBook
 
 
 class PolymarketClient:
@@ -144,7 +144,7 @@ class PolymarketClient:
         """Get candlestick data."""
         return self.clob_client.get_market_candles(market_id, interval, limit)
     
-    # Access to underlying clients for advanced usage
+    # Access to underlying src for advanced usage
     @property
     def gamma(self) -> GammaClient:
         """Direct access to Gamma client."""

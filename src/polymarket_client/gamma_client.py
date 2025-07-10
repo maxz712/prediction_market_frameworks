@@ -4,7 +4,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from src.data_frameworks.domains.prediction_markets.core.models.event import Event
+from src.polymarket_client.models.event import Event
 
 
 class GammaClient:
