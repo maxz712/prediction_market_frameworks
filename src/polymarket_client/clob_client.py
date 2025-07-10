@@ -4,9 +4,8 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from py_clob_client.client import ClobClient as PyClobClient
-from py_clob_client.clob_types import ApiCreds, OrderBookSummary
+from py_clob_client.clob_types import OrderBookSummary
 from .configs.polymarket_configs import PolymarketConfig
-from .exceptions import PolymarketAPIError, PolymarketNetworkError
 
 
 class ClobClient:
@@ -26,7 +25,7 @@ class ClobClient:
         # Initialize the underlying py_clob_client
         self._py_client = PyClobClient(
             host=config.get_endpoint("clob"),
-            key=config.api_key,
+            key=config.pk,  # Private key, not API key
             chain_id=config.chain_id,
             creds=config.api_creds
         )

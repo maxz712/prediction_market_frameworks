@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Generator, Union
 from py_clob_client.clob_types import OrderBookSummary
 
 from .gamma_client import GammaClient
@@ -7,6 +7,7 @@ from .configs.polymarket_configs import PolymarketConfig
 from .models.event import Event
 from .models.market import Market
 from .models.order_book import OrderBook
+from .models.pagination import PaginatedResponse
 from .exceptions import PolymarketConfigurationError
 
 
@@ -37,18 +38,248 @@ class PolymarketClient:
         self.clob_client = ClobClient(config)
     
     # Event-related methods (Gamma API)
-    def get_events(self, active: bool = True, closed: bool = False,
-                   end_date_min: str = None, limit: int = 100, 
-                   offset: int = 0) -> List[Event]:
-        """Get events from Gamma API."""
+    def get_events(
+        self, 
+        # Pagination parameters
+        limit: Optional[int] = None,
+        offset: int = 0,
+        auto_paginate: Optional[bool] = None,
+        # Sorting parameters
+        order: Optional[str] = None,
+        ascending: bool = True,
+        # ID and slug filters
+        event_id: Optional[Union[int, List[int]]] = None,
+        slug: Optional[Union[str, List[str]]] = None,
+        # Status filters
+        archived: Optional[bool] = None,
+        active: Optional[bool] = True,
+        closed: Optional[bool] = False,
+        # Volume and liquidity filters
+        liquidity_min: Optional[float] = None,
+        liquidity_max: Optional[float] = None,
+        volume_min: Optional[float] = None,
+        volume_max: Optional[float] = None,
+        # Date filters
+        start_date_min: Optional[str] = None,
+        start_date_max: Optional[str] = None,
+        end_date_min: Optional[str] = None,
+        end_date_max: Optional[str] = None,
+        # Tag filters
+        tag: Optional[Union[str, List[str]]] = None,
+        tag_id: Optional[Union[int, List[int]]] = None,
+        related_tags: Optional[bool] = None,
+        tag_slug: Optional[Union[str, List[str]]] = None
+    ) -> List[Event]:
+        """Get events from Gamma API with comprehensive filtering options.
+        
+        Args:
+            limit: Maximum number of events to return total (uses config default if None)
+            offset: Offset for pagination
+            auto_paginate: Whether to automatically paginate through all results (uses config default if None)
+            order: Key to sort by
+            ascending: Sort direction, defaults to True (requires order parameter)
+            event_id: ID of a single event to query, can be int or list of ints
+            slug: Slug of a single event to query, can be string or list of strings
+            archived: Filter by archived status
+            active: Filter for active events
+            closed: Filter for closed events
+            liquidity_min: Filter by minimum liquidity
+            liquidity_max: Filter by maximum liquidity
+            volume_min: Filter by minimum volume
+            volume_max: Filter by maximum volume
+            start_date_min: Filter by minimum start date (ISO format)
+            start_date_max: Filter by maximum start date (ISO format)
+            end_date_min: Minimum end date filter (ISO format)
+            end_date_max: Filter by maximum end date (ISO format)
+            tag: Filter by tag labels, can be string or list of strings
+            tag_id: Filter by tag ID, can be int or list of ints
+            related_tags: Include events with related tags (requires tag_id parameter)
+            tag_slug: Filter by tag slug, can be string or list of strings
+        """
         return self.gamma_client.get_events(
-            active=active, closed=closed, end_date_min=end_date_min,
-            limit=limit, offset=offset
+            limit=limit,
+            offset=offset,
+            auto_paginate=auto_paginate,
+            order=order,
+            ascending=ascending,
+            event_id=event_id,
+            slug=slug,
+            archived=archived,
+            active=active,
+            closed=closed,
+            liquidity_min=liquidity_min,
+            liquidity_max=liquidity_max,
+            volume_min=volume_min,
+            volume_max=volume_max,
+            start_date_min=start_date_min,
+            start_date_max=start_date_max,
+            end_date_min=end_date_min,
+            end_date_max=end_date_max,
+            tag=tag,
+            tag_id=tag_id,
+            related_tags=related_tags,
+            tag_slug=tag_slug
+        )
+    
+    def get_events_paginated(
+        self, 
+        # Pagination parameters
+        limit: Optional[int] = None,
+        offset: int = 0,
+        auto_paginate: Optional[bool] = None,
+        # Sorting parameters
+        order: Optional[str] = None,
+        ascending: bool = True,
+        # ID and slug filters
+        event_id: Optional[Union[int, List[int]]] = None,
+        slug: Optional[Union[str, List[str]]] = None,
+        # Status filters
+        archived: Optional[bool] = None,
+        active: Optional[bool] = True,
+        closed: Optional[bool] = False,
+        # Volume and liquidity filters
+        liquidity_min: Optional[float] = None,
+        liquidity_max: Optional[float] = None,
+        volume_min: Optional[float] = None,
+        volume_max: Optional[float] = None,
+        # Date filters
+        start_date_min: Optional[str] = None,
+        start_date_max: Optional[str] = None,
+        end_date_min: Optional[str] = None,
+        end_date_max: Optional[str] = None,
+        # Tag filters
+        tag: Optional[Union[str, List[str]]] = None,
+        tag_id: Optional[Union[int, List[int]]] = None,
+        related_tags: Optional[bool] = None,
+        tag_slug: Optional[Union[str, List[str]]] = None
+    ) -> PaginatedResponse[Event]:
+        """Get events from Gamma API with pagination metadata and comprehensive filtering options."""
+        return self.gamma_client.get_events_paginated(
+            limit=limit,
+            offset=offset,
+            auto_paginate=auto_paginate,
+            order=order,
+            ascending=ascending,
+            event_id=event_id,
+            slug=slug,
+            archived=archived,
+            active=active,
+            closed=closed,
+            liquidity_min=liquidity_min,
+            liquidity_max=liquidity_max,
+            volume_min=volume_min,
+            volume_max=volume_max,
+            start_date_min=start_date_min,
+            start_date_max=start_date_max,
+            end_date_min=end_date_min,
+            end_date_max=end_date_max,
+            tag=tag,
+            tag_id=tag_id,
+            related_tags=related_tags,
+            tag_slug=tag_slug
+        )
+    
+    def iter_events(
+        self, 
+        # Pagination parameters
+        page_size: Optional[int] = None,
+        offset: int = 0,
+        # Sorting parameters
+        order: Optional[str] = None,
+        ascending: bool = True,
+        # ID and slug filters
+        event_id: Optional[Union[int, List[int]]] = None,
+        slug: Optional[Union[str, List[str]]] = None,
+        # Status filters
+        archived: Optional[bool] = None,
+        active: Optional[bool] = True,
+        closed: Optional[bool] = False,
+        # Volume and liquidity filters
+        liquidity_min: Optional[float] = None,
+        liquidity_max: Optional[float] = None,
+        volume_min: Optional[float] = None,
+        volume_max: Optional[float] = None,
+        # Date filters
+        start_date_min: Optional[str] = None,
+        start_date_max: Optional[str] = None,
+        end_date_min: Optional[str] = None,
+        end_date_max: Optional[str] = None,
+        # Tag filters
+        tag: Optional[Union[str, List[str]]] = None,
+        tag_id: Optional[Union[int, List[int]]] = None,
+        related_tags: Optional[bool] = None,
+        tag_slug: Optional[Union[str, List[str]]] = None
+    ) -> Generator[Event, None, None]:
+        """Iterator for events that yields events one page at a time (memory efficient)."""
+        return self.gamma_client.iter_events(
+            page_size=page_size,
+            offset=offset,
+            order=order,
+            ascending=ascending,
+            event_id=event_id,
+            slug=slug,
+            archived=archived,
+            active=active,
+            closed=closed,
+            liquidity_min=liquidity_min,
+            liquidity_max=liquidity_max,
+            volume_min=volume_min,
+            volume_max=volume_max,
+            start_date_min=start_date_min,
+            start_date_max=start_date_max,
+            end_date_min=end_date_min,
+            end_date_max=end_date_max,
+            tag=tag,
+            tag_id=tag_id,
+            related_tags=related_tags,
+            tag_slug=tag_slug
         )
     
     def get_active_events(self, limit: int = 100) -> List[Event]:
         """Get currently active events."""
         return self.get_events(active=True, closed=False, limit=limit)
+    
+    def get_events_by_slug(
+        self, 
+        slug: Union[str, List[str]],
+        limit: Optional[int] = None,
+        active: Optional[bool] = None,
+        closed: Optional[bool] = None,
+        **kwargs
+    ) -> List[Event]:
+        """Get events by their slug(s) - convenience function.
+        
+        Args:
+            slug: Event slug(s) to search for. Can be a single string or list of strings.
+            limit: Maximum number of events to return (uses config default if None)
+            active: Filter for active events (None = no filter)
+            closed: Filter for closed events (None = no filter)
+            **kwargs: Additional filtering parameters (e.g., liquidity_min, volume_min, etc.)
+            
+        Returns:
+            List of Event objects matching the slug(s)
+            
+        Examples:
+            # Get single event by slug
+            events = client.get_events_by_slug("presidential-election-2024")
+            
+            # Get multiple events by slug
+            events = client.get_events_by_slug(["event1-slug", "event2-slug"])
+            
+            # Get events by slug with additional filters
+            events = client.get_events_by_slug(
+                "sports-event", 
+                active=True, 
+                liquidity_min=1000
+            )
+        """
+        return self.get_events(
+            slug=slug,
+            limit=limit,
+            active=active,
+            closed=closed,
+            **kwargs
+        )
     
     # Market-related methods
     def get_market(self, condition_id: str) -> Market:

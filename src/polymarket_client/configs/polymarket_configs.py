@@ -25,10 +25,12 @@ class PolymarketConfig(BaseModel):
     # Pagination settings
     default_page_size: int = Field(default=100, description="Default page size for paginated requests")
     max_page_size: int = Field(default=1000, description="Maximum allowed page size")
+    max_total_results: int = Field(default=10000, description="Maximum total results to prevent memory issues")
     
     # Feature flags
-    enable_auto_pagination: bool = Field(default=True, description="Automatically paginate through all results")
+    enable_auto_pagination: bool = Field(default=False, description="Automatically paginate through all results")
     enable_response_caching: bool = Field(default=False, description="Enable response caching")
+    warn_large_requests: bool = Field(default=True, description="Warn when requesting large datasets")
     
     # SDK metadata
     sdk_version: str = Field(default="0.1.0", description="SDK version for User-Agent header")
@@ -59,8 +61,10 @@ class PolymarketConfig(BaseModel):
                  max_retries_env: str = "POLYMARKET_MAX_RETRIES",
                  default_page_size_env: str = "POLYMARKET_DEFAULT_PAGE_SIZE",
                  max_page_size_env: str = "POLYMARKET_MAX_PAGE_SIZE",
+                 max_total_results_env: str = "POLYMARKET_MAX_TOTAL_RESULTS",
                  enable_auto_pagination_env: str = "POLYMARKET_ENABLE_AUTO_PAGINATION",
-                 enable_response_caching_env: str = "POLYMARKET_ENABLE_RESPONSE_CACHING") -> 'PolymarketConfig':
+                 enable_response_caching_env: str = "POLYMARKET_ENABLE_RESPONSE_CACHING",
+                 warn_large_requests_env: str = "POLYMARKET_WARN_LARGE_REQUESTS") -> 'PolymarketConfig':
         """Create config from environment variables."""
         config_data = {
             "api_key": os.getenv(api_key_env, ""),
@@ -104,6 +108,10 @@ class PolymarketConfig(BaseModel):
         if max_page_size_str:
             config_data["max_page_size"] = int(max_page_size_str)
             
+        max_total_results_str = os.getenv(max_total_results_env)
+        if max_total_results_str:
+            config_data["max_total_results"] = int(max_total_results_str)
+            
         enable_auto_pagination_str = os.getenv(enable_auto_pagination_env)
         if enable_auto_pagination_str:
             config_data["enable_auto_pagination"] = enable_auto_pagination_str.lower() in ('true', '1', 'yes')
@@ -111,6 +119,10 @@ class PolymarketConfig(BaseModel):
         enable_response_caching_str = os.getenv(enable_response_caching_env)
         if enable_response_caching_str:
             config_data["enable_response_caching"] = enable_response_caching_str.lower() in ('true', '1', 'yes')
+            
+        warn_large_requests_str = os.getenv(warn_large_requests_env)
+        if warn_large_requests_str:
+            config_data["warn_large_requests"] = warn_large_requests_str.lower() in ('true', '1', 'yes')
             
         return cls(**config_data)
     

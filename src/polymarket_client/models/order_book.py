@@ -1,5 +1,3 @@
-# src/prediction_market_frameworks/core/models.py
-
 from __future__ import annotations
 from typing import List, Optional, Iterator, Any
 from pydantic import BaseModel, field_validator
