@@ -1,9 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "prediction-market-frameworks"
 version = "0.1.0"
 description = "Unified Python SDK for prediction market platforms (Polymarket, Kalshi)"
 readme = "README.md"
 requires-python = ">=3.12"
+authors = [
+    {name = "Max Zhang"}
+]
+license = {text = "MIT"}
+keywords = ["prediction-markets", "polymarket", "kalshi", "trading", "api", "sdk"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "aiohttp>=3.12.13",
     "py-clob-client>=0.23.0",
@@ -139,6 +158,11 @@ module = [
     "py_order_utils.*",
 ]
 ignore_missing_imports = true
+
+# Ignore docstring import examples during development
+[[tool.mypy.overrides]]
+module = "src"
+disable_error_code = ["name-defined"]
 
 # Coverage configuration
 [tool.coverage.run]
