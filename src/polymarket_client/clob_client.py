@@ -153,6 +153,77 @@ class ClobClient:
         response.raise_for_status()
         return response.json()
     
+    # Trading execution methods
+    def submit_market_order(self, token_id: str, side: str, size: float) -> Dict[str, Any]:
+        """
+        Submit a market order for immediate execution.
+        
+        Args:
+            token_id: The token ID to trade
+            side: 'BUY' or 'SELL'
+            size: Size of the order
+        """
+        order_args = {
+            "token_id": token_id,
+            "side": side.upper(),
+            "type": "MARKET",
+            "size": str(size)
+        }
+        return self.post_order(order_args)
+    
+    def submit_limit_order_gtc(self, token_id: str, side: str, size: float, price: float) -> Dict[str, Any]:
+        """
+        Submit a limit order that is good till cancellation (GTC).
+        
+        Args:
+            token_id: The token ID to trade
+            side: 'BUY' or 'SELL'
+            size: Size of the order
+            price: Price per unit
+        """
+        order_args = {
+            "token_id": token_id,
+            "side": side.upper(),
+            "type": "LIMIT",
+            "size": str(size),
+            "price": str(price),
+            "time_in_force": "GTC"
+        }
+        return self.post_order(order_args)
+    
+    def get_open_orders(self, market: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get current open orders for the authenticated user.
+        
+        Args:
+            market: Optional market filter
+        """
+        params = {"status": "OPEN"}
+        if market:
+            params["market"] = market
+        return self.get_orders(**params)
+    
+    def get_current_user_position(self, market: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get current user position.
+        
+        Args:
+            market: Optional market filter
+        """
+        # Get user address from credentials
+        user_address = self.creds.api_key  # This might need adjustment based on actual API
+        positions = self.get_user_positions(user_address)
+        
+        if market:
+            # Filter positions by market if specified
+            filtered_positions = []
+            for position in positions.get("positions", []):
+                if position.get("market") == market:
+                    filtered_positions.append(position)
+            return {"positions": filtered_positions}
+        
+        return positions
+    
     # Expose the underlying client for any methods not explicitly wrapped
     @property
     def py_client(self) -> PyClobClient:
