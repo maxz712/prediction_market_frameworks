@@ -22,6 +22,17 @@ class PolymarketConfig(BaseModel):
     timeout: int = Field(default=30, description="Request timeout in seconds")
     max_retries: int = Field(default=3, description="Maximum number of retries")
     
+    # Pagination settings
+    default_page_size: int = Field(default=100, description="Default page size for paginated requests")
+    max_page_size: int = Field(default=1000, description="Maximum allowed page size")
+    
+    # Feature flags
+    enable_auto_pagination: bool = Field(default=True, description="Automatically paginate through all results")
+    enable_response_caching: bool = Field(default=False, description="Enable response caching")
+    
+    # SDK metadata
+    sdk_version: str = Field(default="0.1.0", description="SDK version for User-Agent header")
+    
     @field_validator('api_key', 'api_secret', 'api_passphrase', 'pk')
     @classmethod
     def validate_not_empty(cls, v):
@@ -45,7 +56,11 @@ class PolymarketConfig(BaseModel):
                  private_key_env: str = "POLYMARKET_PRIVATE_KEY",
                  chain_id_env: str = "POLYMARKET_CHAIN_ID",
                  timeout_env: str = "POLYMARKET_TIMEOUT",
-                 max_retries_env: str = "POLYMARKET_MAX_RETRIES") -> 'PolymarketConfig':
+                 max_retries_env: str = "POLYMARKET_MAX_RETRIES",
+                 default_page_size_env: str = "POLYMARKET_DEFAULT_PAGE_SIZE",
+                 max_page_size_env: str = "POLYMARKET_MAX_PAGE_SIZE",
+                 enable_auto_pagination_env: str = "POLYMARKET_ENABLE_AUTO_PAGINATION",
+                 enable_response_caching_env: str = "POLYMARKET_ENABLE_RESPONSE_CACHING") -> 'PolymarketConfig':
         """Create config from environment variables."""
         config_data = {
             "api_key": os.getenv(api_key_env, ""),
@@ -79,6 +94,23 @@ class PolymarketConfig(BaseModel):
         max_retries_str = os.getenv(max_retries_env)
         if max_retries_str:
             config_data["max_retries"] = int(max_retries_str)
+            
+        # Additional optional settings
+        default_page_size_str = os.getenv(default_page_size_env)
+        if default_page_size_str:
+            config_data["default_page_size"] = int(default_page_size_str)
+            
+        max_page_size_str = os.getenv(max_page_size_env)
+        if max_page_size_str:
+            config_data["max_page_size"] = int(max_page_size_str)
+            
+        enable_auto_pagination_str = os.getenv(enable_auto_pagination_env)
+        if enable_auto_pagination_str:
+            config_data["enable_auto_pagination"] = enable_auto_pagination_str.lower() in ('true', '1', 'yes')
+            
+        enable_response_caching_str = os.getenv(enable_response_caching_env)
+        if enable_response_caching_str:
+            config_data["enable_response_caching"] = enable_response_caching_str.lower() in ('true', '1', 'yes')
             
         return cls(**config_data)
     

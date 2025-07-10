@@ -33,7 +33,7 @@ class PolymarketClient:
                 ) from e
         
         self.config = config
-        self.gamma_client = GammaClient(config.get_endpoint("gamma"))
+        self.gamma_client = GammaClient(config)
         self.clob_client = ClobClient(config)
     
     # Event-related methods (Gamma API)
