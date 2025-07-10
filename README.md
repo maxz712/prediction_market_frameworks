@@ -224,12 +224,6 @@ mypy src/
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
-
-- 📖 [Documentation](https://docs.example.com)
-- 🐛 [Issue Tracker](https://github.com/your-org/prediction-market-frameworks/issues)
-- 💬 [Discussions](https://github.com/your-org/prediction-market-frameworks/discussions)
-
 ## Roadmap
 
 - [x] Polymarket integration
