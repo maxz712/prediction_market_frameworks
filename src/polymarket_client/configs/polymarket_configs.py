@@ -1,21 +1,26 @@
 import os
 from typing import Dict, Optional
 from pydantic import BaseModel, Field, field_validator
+from py_clob_client.clob_types import ApiCreds
 
 
 class PolymarketConfig(BaseModel):
-    hosts: Dict[str, str] = Field(
+    endpoints: Dict[str, str] = Field(
         default={
             "gamma": "https://gamma-api.polymarket.com",
-            "clob": "https://clob.polymarket.com"
+            "clob": "https://clob.polymarket.com",
+            "info": "https://strapi-matic.polymarket.com",
+            "neg_risk": "https://neg-risk-api.polymarket.com"
         },
-        description="API host URLs for Polymarket services"
+        description="API endpoint URLs for Polymarket services"
     )
     chain_id: int = Field(default=137, description="Blockchain chain ID")
     api_key: str = Field(..., description="CLOB API key")
     api_secret: str = Field(..., description="CLOB API secret")
     api_passphrase: str = Field(..., description="CLOB API passphrase")
     pk: str = Field(..., description="Private key for trading operations")
+    timeout: int = Field(default=30, description="Request timeout in seconds")
+    max_retries: int = Field(default=3, description="Maximum number of retries")
     
     @field_validator('api_key', 'api_secret', 'api_passphrase', 'pk')
     @classmethod
@@ -24,12 +29,12 @@ class PolymarketConfig(BaseModel):
             raise ValueError("Required field cannot be empty")
         return v.strip()
     
-    @field_validator('hosts')
+    @field_validator('endpoints')
     @classmethod
-    def validate_hosts(cls, v):
-        required_hosts = {'gamma', 'clob'}
-        if not all(host in v for host in required_hosts):
-            raise ValueError(f"hosts must contain keys: {required_hosts}")
+    def validate_endpoints(cls, v):
+        required_endpoints = {'gamma', 'clob'}
+        if not all(endpoint in v for endpoint in required_endpoints):
+            raise ValueError(f"endpoints must contain keys: {required_endpoints}")
         return v
     
     @classmethod
@@ -38,7 +43,9 @@ class PolymarketConfig(BaseModel):
                  api_secret_env: str = "POLYMARKET_API_SECRET", 
                  api_passphrase_env: str = "POLYMARKET_API_PASSPHRASE",
                  private_key_env: str = "POLYMARKET_PRIVATE_KEY",
-                 chain_id_env: str = "POLYMARKET_CHAIN_ID") -> 'PolymarketConfig':
+                 chain_id_env: str = "POLYMARKET_CHAIN_ID",
+                 timeout_env: str = "POLYMARKET_TIMEOUT",
+                 max_retries_env: str = "POLYMARKET_MAX_RETRIES") -> 'PolymarketConfig':
         """Create config from environment variables."""
         config_data = {
             "api_key": os.getenv(api_key_env, ""),
@@ -47,12 +54,48 @@ class PolymarketConfig(BaseModel):
             "pk": os.getenv(private_key_env, "")
         }
         
-        # Only set chain_id if environment variable exists, otherwise use default
+        # Custom endpoints from environment variables
+        endpoints = {}
+        if os.getenv("POLYMARKET_GAMMA_URL"):
+            endpoints["gamma"] = os.getenv("POLYMARKET_GAMMA_URL")
+        if os.getenv("POLYMARKET_CLOB_URL"):
+            endpoints["clob"] = os.getenv("POLYMARKET_CLOB_URL")
+        if os.getenv("POLYMARKET_INFO_URL"):
+            endpoints["info"] = os.getenv("POLYMARKET_INFO_URL")
+        if os.getenv("POLYMARKET_NEG_RISK_URL"):
+            endpoints["neg_risk"] = os.getenv("POLYMARKET_NEG_RISK_URL")
+        if endpoints:
+            config_data["endpoints"] = endpoints
+        
+        # Optional numeric fields
         chain_id_str = os.getenv(chain_id_env)
         if chain_id_str:
             config_data["chain_id"] = int(chain_id_str)
             
+        timeout_str = os.getenv(timeout_env)
+        if timeout_str:
+            config_data["timeout"] = int(timeout_str)
+            
+        max_retries_str = os.getenv(max_retries_env)
+        if max_retries_str:
+            config_data["max_retries"] = int(max_retries_str)
+            
         return cls(**config_data)
+    
+    @property
+    def api_creds(self) -> ApiCreds:
+        """Create ApiCreds object for py_clob_client."""
+        return ApiCreds(
+            api_key=self.api_key,
+            api_secret=self.api_secret,
+            api_passphrase=self.api_passphrase
+        )
+    
+    def get_endpoint(self, service: str) -> str:
+        """Get endpoint URL for a specific service."""
+        if service not in self.endpoints:
+            raise ValueError(f"Service '{service}' not found in endpoints. Available: {list(self.endpoints.keys())}")
+        return self.endpoints[service].rstrip("/")
     
     class Config:
         env_prefix = "POLYMARKET_"

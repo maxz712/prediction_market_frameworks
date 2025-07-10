@@ -1,12 +1,13 @@
 from typing import List, Dict, Any, Optional
-from py_clob_client.clob_types import ApiCreds, OrderBookSummary
+from py_clob_client.clob_types import OrderBookSummary
 
 from .gamma_client import GammaClient
 from .clob_client import ClobClient
-from src.polymarket_client.configs.polymarket_configs import PolymarketConfig
-from src.polymarket_client.models.event import Event
-from src.polymarket_client.models.market import Market
-from src.polymarket_client.models.order_book import OrderBook
+from .configs.polymarket_configs import PolymarketConfig
+from .models.event import Event
+from .models.market import Market
+from .models.order_book import OrderBook
+from .exceptions import PolymarketConfigurationError
 
 
 class PolymarketClient:
@@ -15,7 +16,7 @@ class PolymarketClient:
     Wraps both Gamma API (events/markets) and CLOB API (trading/order books).
     """
     
-    def __init__(self, config: Optional[PolymarketConfig] = None):
+    def __init__(self, config: Optional[PolymarketConfig] = None) -> None:
         """
         Initialize the unified Polymarket client.
         
@@ -23,20 +24,17 @@ class PolymarketClient:
             config: PolymarketConfig instance. If None, loads from environment variables.
         """
         if config is None:
-            config = PolymarketConfig.from_env()
+            try:
+                config = PolymarketConfig.from_env()
+            except Exception as e:
+                raise PolymarketConfigurationError(
+                    "Failed to load configuration from environment variables. "
+                    "Please provide a config object or set the required environment variables."
+                ) from e
         
         self.config = config
-        self.gamma_client = GammaClient(config.hosts["gamma"])
-        self.clob_client = ClobClient(
-            host=config.hosts["clob"],
-            key=config.pk,
-            chain_id=config.chain_id,
-            creds=ApiCreds(
-                api_key=config.api_key,
-                api_secret=config.api_secret,
-                api_passphrase=config.api_passphrase
-            )
-        )
+        self.gamma_client = GammaClient(config.get_endpoint("gamma"))
+        self.clob_client = ClobClient(config)
     
     # Event-related methods (Gamma API)
     def get_events(self, active: bool = True, closed: bool = False,

@@ -1,14 +1,25 @@
 import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from src.polymarket_client.models.event import Event
+from .models.event import Event
+from .exceptions import PolymarketAPIError, PolymarketNetworkError
 
 
 class GammaClient:
-    def __init__(self, base_url: str):
+    """Client for interacting with Polymarket Gamma API.
+    
+    Handles event and market data retrieval from the Gamma API service.
+    """
+    
+    def __init__(self, base_url: str) -> None:
+        """Initialize the Gamma client.
+        
+        Args:
+            base_url: Base URL for the Gamma API
+        """
         self.base_url = base_url.rstrip("/")
         self._session = self._init_session()
 
@@ -23,8 +34,14 @@ class GammaClient:
         session.mount("http://", adapter)
         return session
 
-    def get_events(self, active: bool = True, closed: bool = False, 
-                   end_date_min: str = None, limit: int = 100, offset: int = 0) -> List[Event]:
+    def get_events(
+        self, 
+        active: bool = True, 
+        closed: bool = False,
+        end_date_min: Optional[str] = None, 
+        limit: int = 100, 
+        offset: int = 0
+    ) -> List[Event]:
         """
         Retrieves events from the Gamma API.
         
@@ -56,9 +73,17 @@ class GammaClient:
         
         while True:
             params["offset"] = current_offset
-            resp = self._session.get(url, params=params)
-            resp.raise_for_status()
-            events = resp.json()
+            try:
+                resp = self._session.get(url, params=params)
+                resp.raise_for_status()
+                events = resp.json()
+            except requests.RequestException as e:
+                raise PolymarketNetworkError(f"Failed to fetch events: {e}", original_error=e)
+            except requests.HTTPError as e:
+                raise PolymarketAPIError(
+                    f"API request failed: {e}",
+                    status_code=resp.status_code if 'resp' in locals() else None
+                )
             
             if not isinstance(events, list):
                 raise RuntimeError(f"Unexpected payload: {events}")
@@ -72,7 +97,7 @@ class GammaClient:
 
         return [Event.model_validate(event) for event in all_events]
 
-    def get_markets(self, market_id: str = None) -> Dict[str, Any]:
+    def get_markets(self, market_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Skeleton method for retrieving market data from Gamma API.
         To be implemented later.

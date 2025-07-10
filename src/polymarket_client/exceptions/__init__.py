@@ -1,10 +1,43 @@
-from .polymarket_client import PolymarketClient
-from .configs.polymarket_configs import PolymarketConfig
-from .clob_client import ClobClient
-from .gamma_client import GammaClient
-from .exceptions import (
+"""Polymarket SDK exceptions package.
+
+This package contains all custom exceptions used throughout the Polymarket SDK,
+organized by category for better maintainability and clarity.
+
+Exception Hierarchy:
+    PolymarketError (base)
+    ├── PolymarketConfigurationError
+    ├── PolymarketAPIError
+    │   ├── PolymarketAuthenticationError
+    │   ├── PolymarketAuthorizationError
+    │   ├── PolymarketRateLimitError
+    │   ├── PolymarketNotFoundError
+    │   ├── PolymarketServerError
+    │   ├── PolymarketClientError
+    │   │   ├── PolymarketBadRequestError
+    │   │   └── PolymarketConflictError
+    ├── PolymarketValidationError
+    │   ├── PolymarketFieldValidationError
+    │   ├── PolymarketTypeValidationError
+    │   ├── PolymarketRangeValidationError
+    │   ├── PolymarketRequiredFieldError
+    │   ├── PolymarketFormatValidationError
+    │   └── PolymarketBusinessRuleError
+    └── PolymarketNetworkError
+        ├── PolymarketConnectionError
+        ├── PolymarketTimeoutError
+        ├── PolymarketSSLError
+        ├── PolymarketProxyError
+        └── PolymarketDNSError
+"""
+
+# Base exceptions
+from .base import (
     PolymarketError,
     PolymarketConfigurationError,
+)
+
+# API-related exceptions
+from .api_errors import (
     PolymarketAPIError,
     PolymarketAuthenticationError,
     PolymarketAuthorizationError,
@@ -14,6 +47,10 @@ from .exceptions import (
     PolymarketClientError,
     PolymarketBadRequestError,
     PolymarketConflictError,
+)
+
+# Validation exceptions
+from .validation_errors import (
     PolymarketValidationError,
     PolymarketFieldValidationError,
     PolymarketTypeValidationError,
@@ -21,6 +58,10 @@ from .exceptions import (
     PolymarketRequiredFieldError,
     PolymarketFormatValidationError,
     PolymarketBusinessRuleError,
+)
+
+# Network exceptions
+from .network_errors import (
     PolymarketNetworkError,
     PolymarketConnectionError,
     PolymarketTimeoutError,
@@ -29,13 +70,8 @@ from .exceptions import (
     PolymarketDNSError,
 )
 
+# Export all exceptions
 __all__ = [
-    # Core client classes
-    "PolymarketClient",
-    "PolymarketConfig", 
-    "ClobClient",
-    "GammaClient",
-    
     # Base exceptions
     "PolymarketError",
     "PolymarketConfigurationError",

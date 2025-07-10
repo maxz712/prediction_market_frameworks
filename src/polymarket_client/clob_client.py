@@ -1,10 +1,12 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from py_clob_client.client import ClobClient as PyClobClient
 from py_clob_client.clob_types import ApiCreds, OrderBookSummary
+from .configs.polymarket_configs import PolymarketConfig
+from .exceptions import PolymarketAPIError, PolymarketNetworkError
 
 
 class ClobClient:
@@ -13,33 +15,48 @@ class ClobClient:
     with additional CLOB API endpoints not implemented in the base client.
     """
     
-    def __init__(self, host: str, key: str, chain_id: int, creds: ApiCreds):
-        self.host = host.rstrip("/")
-        self.key = key
-        self.chain_id = chain_id
-        self.creds = creds
+    def __init__(self, config: PolymarketConfig) -> None:
+        """Initialize the CLOB client.
+        
+        Args:
+            config: Polymarket configuration containing API credentials and endpoints
+        """
+        self.config = config
         
         # Initialize the underlying py_clob_client
         self._py_client = PyClobClient(
-            host=host,
-            key=key,
-            chain_id=chain_id,
-            creds=creds
+            host=config.get_endpoint("clob"),
+            key=config.api_key,
+            chain_id=config.chain_id,
+            creds=config.api_creds
         )
         
         # Initialize session for direct API calls
         self._session = self._init_session()
     
+    @classmethod
+    def from_config_dict(cls, config_dict: Dict[str, Any]) -> 'ClobClient':
+        """Create ClobClient from configuration dictionary."""
+        config = PolymarketConfig(**config_dict)
+        return cls(config)
+    
+    @classmethod
+    def from_env(cls) -> 'ClobClient':
+        """Create ClobClient from environment variables."""
+        config = PolymarketConfig.from_env()
+        return cls(config)
+    
     def _init_session(self) -> requests.Session:
         """Initialize session with retry strategy for direct API calls."""
         session = requests.Session()
         retry = Retry(
-            total=3, backoff_factor=0.3,
+            total=self.config.max_retries, backoff_factor=0.3,
             status_forcelist=[429, 500, 502, 503, 504]
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount("https://", adapter)
         session.mount("http://", adapter)
+        session.timeout = self.config.timeout
         return session
     
     # Delegate existing methods to the underlying py_clob_client
@@ -67,7 +84,7 @@ class ClobClient:
         """Cancel an order."""
         return self._py_client.cancel_order(order_id)
     
-    def cancel_orders(self, order_ids: list) -> Dict[str, Any]:
+    def cancel_orders(self, order_ids: List[str]) -> Dict[str, Any]:
         """Cancel multiple orders."""
         return self._py_client.cancel_orders(order_ids)
     
@@ -82,7 +99,7 @@ class ClobClient:
         Get comprehensive trade history for a market.
         Extended endpoint not available in base py_clob_client.
         """
-        url = f"{self.host}/trade-history"
+        url = f"{self.config.get_endpoint('clob')}/trade-history"
         params = {
             "market": market_id,
             "limit": limit,
@@ -98,7 +115,7 @@ class ClobClient:
         Get market depth with specified number of levels.
         Extended endpoint for more detailed order book data.
         """
-        url = f"{self.host}/book"
+        url = f"{self.config.get_endpoint('clob')}/book"
         params = {
             "token_id": token_id,
             "depth": depth
@@ -113,7 +130,7 @@ class ClobClient:
         Get comprehensive market statistics.
         Extended endpoint for market analytics.
         """
-        url = f"{self.host}/markets/{market_id}/stats"
+        url = f"{self.config.get_endpoint('clob')}/markets/{market_id}/stats"
         
         response = self._session.get(url)
         response.raise_for_status()
@@ -124,7 +141,7 @@ class ClobClient:
         Get user positions across all markets.
         Extended endpoint for position tracking.
         """
-        url = f"{self.host}/positions"
+        url = f"{self.config.get_endpoint('clob')}/positions"
         params = {"user": user_address}
         
         response = self._session.get(url, params=params)
@@ -142,7 +159,7 @@ class ClobClient:
             interval: Time interval (1m, 5m, 15m, 1h, 4h, 1d)
             limit: Number of candles to return
         """
-        url = f"{self.host}/candles"
+        url = f"{self.config.get_endpoint('clob')}/candles"
         params = {
             "market": market_id,
             "interval": interval,
@@ -211,7 +228,7 @@ class ClobClient:
             market: Optional market filter
         """
         # Get user address from credentials
-        user_address = self.creds.api_key  # This might need adjustment based on actual API
+        user_address = self.config.api_creds.api_key  # This might need adjustment based on actual API
         positions = self.get_user_positions(user_address)
         
         if market:
