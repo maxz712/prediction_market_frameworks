@@ -19,6 +19,7 @@ class PolymarketConfig(BaseModel):
     api_secret: str = Field(..., description="CLOB API secret")
     api_passphrase: str = Field(..., description="CLOB API passphrase")
     pk: str = Field(..., description="Private key for trading operations")
+    wallet_proxy_address: Optional[str] = Field(None, description="Wallet proxy address for funder operations (optional)")
     timeout: int = Field(default=30, description="Request timeout in seconds")
     max_retries: int = Field(default=3, description="Maximum number of retries")
     
@@ -42,6 +43,13 @@ class PolymarketConfig(BaseModel):
             raise ValueError("Required field cannot be empty")
         return v.strip()
     
+    @field_validator('wallet_proxy_address')
+    @classmethod
+    def validate_proxy_address(cls, v):
+        if v is not None and (not v or not v.strip()):
+            raise ValueError("Wallet proxy address cannot be empty string")
+        return v.strip() if v else None
+    
     @field_validator('endpoints')
     @classmethod
     def validate_endpoints(cls, v):
@@ -56,6 +64,7 @@ class PolymarketConfig(BaseModel):
                  api_secret_env: str = "POLYMARKET_API_SECRET", 
                  api_passphrase_env: str = "POLYMARKET_API_PASSPHRASE",
                  private_key_env: str = "POLYMARKET_PRIVATE_KEY",
+                 wallet_proxy_address_env: str = "POLYMARKET_WALLET_PROXY_ADDRESS",
                  chain_id_env: str = "POLYMARKET_CHAIN_ID",
                  timeout_env: str = "POLYMARKET_TIMEOUT",
                  max_retries_env: str = "POLYMARKET_MAX_RETRIES",
@@ -70,7 +79,8 @@ class PolymarketConfig(BaseModel):
             "api_key": os.getenv(api_key_env, ""),
             "api_secret": os.getenv(api_secret_env, ""),
             "api_passphrase": os.getenv(api_passphrase_env, ""),
-            "pk": os.getenv(private_key_env, "")
+            "pk": os.getenv(private_key_env, ""),
+            "wallet_proxy_address": os.getenv(wallet_proxy_address_env, "")
         }
         
         # Custom endpoints from environment variables
