@@ -603,20 +603,6 @@ class GammaClient:
                 value=related_tags
             )
 
-    def get_markets(self, market_id: str | None = None) -> dict[str, Any]:
-        """Retrieve market data from Gamma API.
-        
-        Args:
-            market_id: Optional market identifier
-            
-        Returns:
-            Market data dictionary
-            
-        Raises:
-            NotImplementedError: This endpoint is not yet implemented
-        """
-        raise NotImplementedError("get_markets endpoint not yet implemented")
-
     def health_check(self) -> dict[str, Any]:
         """Check if the Gamma API is accessible.
         

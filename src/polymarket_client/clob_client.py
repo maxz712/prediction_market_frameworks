@@ -129,7 +129,7 @@ class ClobClient:
 
     def cancel_order(self, order_id: str) -> dict[str, Any]:
         """Cancel an order."""
-        return self._py_client.cancel_order(order_id)
+        return self._py_client.cancel(order_id)
 
     def cancel_orders(self, order_ids: list[str]) -> dict[str, Any]:
         """Cancel multiple orders."""

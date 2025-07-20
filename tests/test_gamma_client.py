@@ -151,13 +151,6 @@ class TestGammaClient:
         assert mock_get.call_count == 1
         assert len(result) == 100
 
-    def test_get_markets_not_implemented(self, test_config):
-        """Test that get_markets raises NotImplementedError."""
-        client = GammaClient(test_config)
-
-        with pytest.raises(NotImplementedError):
-            client.get_markets()
-
     @patch("src.polymarket_client.gamma_client.requests.Session.get")
     def test_health_check_healthy(self, mock_get, test_config):
         """Test health_check when API is healthy."""

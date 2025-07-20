@@ -290,10 +290,6 @@ class PolymarketClient:
         """
         return self.clob_client.get_market(condition_id)
 
-    def get_markets(self, market_id: str = None) -> dict[str, Any]:
-        """Get market data from Gamma API (skeleton - to be implemented)."""
-        return self.gamma_client.get_markets(market_id)
-
     # Order book and trading methods (CLOB API)
     def get_order_book(self, token_id: str) -> OrderBook:
         """Get order book for a token."""
