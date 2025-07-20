@@ -9,7 +9,7 @@ class RewardRate(BaseModel):
 
 
 class Rewards(BaseModel):
-    rates: List[RewardRate]
+    rates: Optional[List[RewardRate]]
     min_size: int
     max_spread: float
 
