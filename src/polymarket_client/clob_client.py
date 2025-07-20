@@ -11,7 +11,7 @@ from py_clob_client.clob_types import (
     BalanceAllowanceParams
 )
 from .configs.polymarket_configs import PolymarketConfig
-from .models.market import Market
+from .models import Market, OrderBook
 
 
 class ClobClient:
@@ -89,9 +89,24 @@ class ClobClient:
         market_data = self._py_client.get_market(condition_id)
         return Market.model_validate(market_data)
     
-    def get_order_book(self, token_id: str) -> OrderBookSummary:
-        """Get order book summary for a given token ID."""
-        return self._py_client.get_order_book(token_id)
+    def get_order_book(self, token_id: str) -> OrderBook:
+        """Get order book for a given token ID.
+        
+        Args:
+            token_id: The token ID to get the order book for
+            
+        Returns:
+            OrderBook: The order book data model with bids, asks, and metadata
+        """
+        summary = self._py_client.get_order_book(token_id)
+        return OrderBook.from_raw_data(
+            market_id=summary.market,
+            asset_id=summary.asset_id,
+            timestamp=int(summary.timestamp),
+            hash=summary.hash,
+            raw_bids=summary.bids,
+            raw_asks=summary.asks
+        )
     
     def get_trades(self, market: str, **kwargs) -> Dict[str, Any]:
         """Get trades for a market."""

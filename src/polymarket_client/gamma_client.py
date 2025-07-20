@@ -5,8 +5,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from .models.event import Event
-from .models.pagination import PaginatedResponse, PaginationInfo
+from .models import Event, PaginatedResponse, PaginationInfo
 from .configs.polymarket_configs import PolymarketConfig
 from .exceptions import (
     PolymarketAPIError, 

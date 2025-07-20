@@ -3,6 +3,7 @@
 from .event import Event, Tag, ClobReward, Market as EventMarket
 from .market import Market
 from .order_book import OrderBook, BookLevel
+from .pagination import PaginatedResponse, PaginationInfo
 
 __all__ = [
     "Event",
@@ -11,5 +12,7 @@ __all__ = [
     "EventMarket",
     "Market",
     "OrderBook",
-    "BookLevel"
+    "BookLevel",
+    "PaginatedResponse",
+    "PaginationInfo"
 ]

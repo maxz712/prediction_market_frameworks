@@ -4,10 +4,7 @@ from py_clob_client.clob_types import OrderBookSummary
 from .gamma_client import GammaClient
 from .clob_client import ClobClient
 from .configs.polymarket_configs import PolymarketConfig
-from .models.event import Event
-from .models.market import Market
-from .models.order_book import OrderBook
-from .models.pagination import PaginatedResponse
+from .models import Event, Market, OrderBook, PaginatedResponse
 from .exceptions import PolymarketConfigurationError
 
 
@@ -300,19 +297,11 @@ class PolymarketClient:
     # Order book and trading methods (CLOB API)
     def get_order_book(self, token_id: str) -> OrderBook:
         """Get order book for a token."""
-        summary = self.clob_client.get_order_book(token_id)
-        return OrderBook.from_raw_data(
-            market_id=summary.market,
-            asset_id=summary.asset_id,
-            timestamp=int(summary.timestamp),
-            hash=summary.hash,
-            raw_bids=summary.bids,
-            raw_asks=summary.asks
-        )
+        return self.clob_client.get_order_book(token_id)
     
     def get_order_book_raw(self, token_id: str) -> OrderBookSummary:
         """Get raw order book summary."""
-        return self.clob_client.get_order_book(token_id)
+        return self.clob_client.py_client.get_order_book(token_id)
     
     def get_market_depth(self, token_id: str, depth: int = 10) -> Dict[str, Any]:
         """Get detailed market depth."""
