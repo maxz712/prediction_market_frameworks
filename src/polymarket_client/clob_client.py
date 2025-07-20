@@ -11,6 +11,7 @@ from py_clob_client.clob_types import (
     BalanceAllowanceParams
 )
 from .configs.polymarket_configs import PolymarketConfig
+from .models.market import Market
 
 
 class ClobClient:
@@ -76,9 +77,17 @@ class ClobClient:
         return session
     
     # Delegate existing methods to the underlying py_clob_client
-    def get_market(self, condition_id: str) -> Dict[str, Any]:
-        """Get market data for a given condition ID."""
-        return self._py_client.get_market(condition_id)
+    def get_market(self, condition_id: str) -> Market:
+        """Get market data for a given condition ID.
+        
+        Args:
+            condition_id: The condition ID of the market to retrieve
+            
+        Returns:
+            Market: A Market model instance with the market data
+        """
+        market_data = self._py_client.get_market(condition_id)
+        return Market.model_validate(market_data)
     
     def get_order_book(self, token_id: str) -> OrderBookSummary:
         """Get order book summary for a given token ID."""

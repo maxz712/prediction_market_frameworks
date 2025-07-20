@@ -283,9 +283,15 @@ class PolymarketClient:
     
     # Market-related methods
     def get_market(self, condition_id: str) -> Market:
-        """Get market data from CLOB API."""
-        market_data = self.clob_client.get_market(condition_id)
-        return Market.model_validate(market_data)
+        """Get market data from CLOB API.
+        
+        Args:
+            condition_id: The condition ID of the market to retrieve
+            
+        Returns:
+            Market: A Market model instance with the market data
+        """
+        return self.clob_client.get_market(condition_id)
     
     def get_markets(self, market_id: str = None) -> Dict[str, Any]:
         """Get market data from Gamma API (skeleton - to be implemented)."""
