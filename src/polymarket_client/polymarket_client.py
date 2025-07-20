@@ -313,10 +313,6 @@ class PolymarketClient:
         """Get orders."""
         return self.clob_client.get_orders(**kwargs)
 
-    def post_order(self, order_args: dict[str, Any]) -> dict[str, Any]:
-        """Post an order."""
-        return self.clob_client.post_order(order_args)
-
     def cancel_order(self, order_id: str) -> dict[str, Any]:
         """Cancel an order."""
         return self.clob_client.cancel_order(order_id)
@@ -329,14 +325,21 @@ class PolymarketClient:
         """Cancel all orders."""
         return self.clob_client.cancel_all()
 
-    # Trading execution methods
-    def submit_market_order(self, token_id: str, side: str, size: float) -> dict[str, Any]:
-        """Submit a market order for immediate execution."""
-        return self.clob_client.submit_market_order(token_id, side, size)
-
     def submit_limit_order_gtc(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
         """Submit a limit order that is good till cancellation (GTC)."""
         return self.clob_client.submit_limit_order_gtc(token_id, side, size, price)
+
+    def submit_limit_order_fok(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
+        """Submit a Fill or Kill (FOK) limit order."""
+        return self.clob_client.submit_limit_order_fok(token_id, side, size, price)
+
+    def submit_limit_order_fak(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
+        """Submit a Fill and Kill (FAK) limit order."""
+        return self.clob_client.submit_limit_order_fak(token_id, side, size, price)
+
+    def submit_limit_order_gtd(self, token_id: str, side: str, size: float, price: float, expires_at: int) -> dict[str, Any]:
+        """Submit a Good Till Date (GTD) limit order."""
+        return self.clob_client.submit_limit_order_gtd(token_id, side, size, price, expires_at)
 
     def get_open_orders(self, market: str | None = None) -> dict[str, Any]:
         """Get current open orders for the authenticated user."""

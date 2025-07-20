@@ -6,6 +6,7 @@ from py_clob_client.clob_types import (
     BalanceAllowanceParams,
     MarketOrderArgs,
     OrderArgs,
+    OrderType,
 )
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -107,10 +108,6 @@ class ClobClient:
             raw_bids=summary.bids,
             raw_asks=summary.asks
         )
-
-    def get_trades(self, market: str, **kwargs) -> dict[str, Any]:
-        """Get trades for a market."""
-        return self._py_client.get_trades(market, **kwargs)
 
     def get_orders(self, **kwargs) -> dict[str, Any]:
         """Get orders."""
@@ -239,6 +236,7 @@ class ClobClient:
     def submit_limit_order_gtc(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
         """
         Submit a limit order that is good till cancellation (GTC).
+        Order remains active until filled or manually cancelled.
         
         Args:
             token_id: The token ID to trade
@@ -246,14 +244,76 @@ class ClobClient:
             size: Size of the order
             price: Price per unit
         """
-        # Create OrderArgs and use create_and_post_order
         order_args = OrderArgs(
             token_id=token_id,
             price=price,
             size=size,
             side=side.upper()
         )
-        return self._py_client.create_and_post_order(order_args)
+        order = self._py_client.create_order(order_args)
+        return self._py_client.post_order(order, OrderType.GTC)
+
+    def submit_limit_order_fok(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
+        """
+        Submit a Fill or Kill (FOK) limit order.
+        Order must be filled completely and immediately or be rejected entirely.
+        
+        Args:
+            token_id: The token ID to trade
+            side: 'BUY' or 'SELL'
+            size: Size of the order
+            price: Price per unit
+        """
+        order_args = OrderArgs(
+            token_id=token_id,
+            price=price,
+            size=size,
+            side=side.upper()
+        )
+        order = self._py_client.create_order(order_args)
+        return self._py_client.post_order(order, OrderType.FOK)
+
+    def submit_limit_order_fak(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
+        """
+        Submit a Fill and Kill (FAK) limit order.
+        Order fills whatever quantity possible immediately, then cancels the rest.
+        
+        Args:
+            token_id: The token ID to trade
+            side: 'BUY' or 'SELL'
+            size: Size of the order
+            price: Price per unit
+        """
+        order_args = OrderArgs(
+            token_id=token_id,
+            price=price,
+            size=size,
+            side=side.upper()
+        )
+        order = self._py_client.create_order(order_args)
+        return self._py_client.post_order(order, OrderType.FAK)
+
+    def submit_limit_order_gtd(self, token_id: str, side: str, size: float, price: float, expires_at: int) -> dict[str, Any]:
+        """
+        Submit a Good Till Date (GTD) limit order.
+        Order remains active until filled, cancelled, or expires at the specified time.
+        
+        Args:
+            token_id: The token ID to trade
+            side: 'BUY' or 'SELL'
+            size: Size of the order
+            price: Price per unit
+            expires_at: Unix timestamp when the order expires
+        """
+        order_args = OrderArgs(
+            token_id=token_id,
+            price=price,
+            size=size,
+            side=side.upper(),
+            expiration=expires_at
+        )
+        order = self._py_client.create_order(order_args)
+        return self._py_client.post_order(order, OrderType.GTD)
 
     def get_open_orders(self, market: str | None = None) -> dict[str, Any]:
         """
@@ -262,10 +322,9 @@ class ClobClient:
         Args:
             market: Optional market filter
         """
-        params = {"status": "OPEN"}
         if market:
-            params["market"] = market
-        return self.get_orders(**params)
+            return self.get_orders(market=market)
+        return self.get_orders()
 
     def get_current_user_position(self, market: str | None = None) -> dict[str, Any]:
         """
