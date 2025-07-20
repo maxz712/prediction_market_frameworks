@@ -5,7 +5,7 @@ from .clob_client import ClobClient
 from .configs.polymarket_configs import PolymarketConfig
 from .exceptions import PolymarketConfigurationError
 from .gamma_client import GammaClient
-from .models import Event, Market, OrderBook, OrderList, PaginatedResponse
+from .models import Event, LimitOrderRequest, Market, OrderBook, OrderList, OrderResponse, PaginatedResponse
 
 
 class PolymarketClient:
@@ -325,21 +325,21 @@ class PolymarketClient:
         """Cancel all orders."""
         return self.clob_client.cancel_all()
 
-    def submit_limit_order_gtc(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
+    def submit_limit_order_gtc(self, request: LimitOrderRequest) -> OrderResponse:
         """Submit a limit order that is good till cancellation (GTC)."""
-        return self.clob_client.submit_limit_order_gtc(token_id, side, size, price)
+        return self.clob_client.submit_limit_order_gtc(request)
 
-    def submit_limit_order_fok(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
+    def submit_limit_order_fok(self, request: LimitOrderRequest) -> OrderResponse:
         """Submit a Fill or Kill (FOK) limit order."""
-        return self.clob_client.submit_limit_order_fok(token_id, side, size, price)
+        return self.clob_client.submit_limit_order_fok(request)
 
-    def submit_limit_order_fak(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
+    def submit_limit_order_fak(self, request: LimitOrderRequest) -> OrderResponse:
         """Submit a Fill and Kill (FAK) limit order."""
-        return self.clob_client.submit_limit_order_fak(token_id, side, size, price)
+        return self.clob_client.submit_limit_order_fak(request)
 
-    def submit_limit_order_gtd(self, token_id: str, side: str, size: float, price: float, expires_at: int) -> dict[str, Any]:
+    def submit_limit_order_gtd(self, request: LimitOrderRequest) -> OrderResponse:
         """Submit a Good Till Date (GTD) limit order."""
-        return self.clob_client.submit_limit_order_gtd(token_id, side, size, price, expires_at)
+        return self.clob_client.submit_limit_order_gtd(request)
 
     def get_open_orders(self, market: str | None = None) -> OrderList:
         """Get current open orders for the authenticated user.

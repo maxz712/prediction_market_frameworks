@@ -12,7 +12,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .configs.polymarket_configs import PolymarketConfig
-from .models import Market, OrderBook, OrderList
+from .models import LimitOrderRequest, Market, OrderBook, OrderList, OrderResponse
 
 
 class ClobClient:
@@ -233,87 +233,93 @@ class ClobClient:
         order = self._py_client.create_market_order(market_order_args)
         return self._py_client.post_order(order)
 
-    def submit_limit_order_gtc(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
+    def submit_limit_order_gtc(self, request: LimitOrderRequest) -> OrderResponse:
         """
         Submit a limit order that is good till cancellation (GTC).
         Order remains active until filled or manually cancelled.
         
         Args:
-            token_id: The token ID to trade
-            side: 'BUY' or 'SELL'
-            size: Size of the order
-            price: Price per unit
+            request: LimitOrderRequest containing order details
+            
+        Returns:
+            OrderResponse: Response with order submission details
         """
         order_args = OrderArgs(
-            token_id=token_id,
-            price=price,
-            size=size,
-            side=side.upper()
+            token_id=request.token_id,
+            price=request.price,
+            size=request.size,
+            side=request.side.value.upper()
         )
         order = self._py_client.create_order(order_args)
-        return self._py_client.post_order(order, OrderType.GTC)
+        raw_response = self._py_client.post_order(order, OrderType.GTC)
+        return OrderResponse.from_raw_response(raw_response)
 
-    def submit_limit_order_fok(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
+    def submit_limit_order_fok(self, request: LimitOrderRequest) -> OrderResponse:
         """
         Submit a Fill or Kill (FOK) limit order.
         Order must be filled completely and immediately or be rejected entirely.
         
         Args:
-            token_id: The token ID to trade
-            side: 'BUY' or 'SELL'
-            size: Size of the order
-            price: Price per unit
+            request: LimitOrderRequest containing order details
+            
+        Returns:
+            OrderResponse: Response with order submission details
         """
         order_args = OrderArgs(
-            token_id=token_id,
-            price=price,
-            size=size,
-            side=side.upper()
+            token_id=request.token_id,
+            price=request.price,
+            size=request.size,
+            side=request.side.value.upper()
         )
         order = self._py_client.create_order(order_args)
-        return self._py_client.post_order(order, OrderType.FOK)
+        raw_response = self._py_client.post_order(order, OrderType.FOK)
+        return OrderResponse.from_raw_response(raw_response)
 
-    def submit_limit_order_fak(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
+    def submit_limit_order_fak(self, request: LimitOrderRequest) -> OrderResponse:
         """
         Submit a Fill and Kill (FAK) limit order.
         Order fills whatever quantity possible immediately, then cancels the rest.
         
         Args:
-            token_id: The token ID to trade
-            side: 'BUY' or 'SELL'
-            size: Size of the order
-            price: Price per unit
+            request: LimitOrderRequest containing order details
+            
+        Returns:
+            OrderResponse: Response with order submission details
         """
         order_args = OrderArgs(
-            token_id=token_id,
-            price=price,
-            size=size,
-            side=side.upper()
+            token_id=request.token_id,
+            price=request.price,
+            size=request.size,
+            side=request.side.value.upper()
         )
         order = self._py_client.create_order(order_args)
-        return self._py_client.post_order(order, OrderType.FAK)
+        raw_response = self._py_client.post_order(order, OrderType.FAK)
+        return OrderResponse.from_raw_response(raw_response)
 
-    def submit_limit_order_gtd(self, token_id: str, side: str, size: float, price: float, expires_at: int) -> dict[str, Any]:
+    def submit_limit_order_gtd(self, request: LimitOrderRequest) -> OrderResponse:
         """
         Submit a Good Till Date (GTD) limit order.
         Order remains active until filled, cancelled, or expires at the specified time.
         
         Args:
-            token_id: The token ID to trade
-            side: 'BUY' or 'SELL'
-            size: Size of the order
-            price: Price per unit
-            expires_at: Unix timestamp when the order expires
+            request: LimitOrderRequest containing order details (expires_at must be set)
+            
+        Returns:
+            OrderResponse: Response with order submission details
         """
+        if request.expires_at is None:
+            raise ValueError("expires_at must be set for GTD orders")
+            
         order_args = OrderArgs(
-            token_id=token_id,
-            price=price,
-            size=size,
-            side=side.upper(),
-            expiration=expires_at
+            token_id=request.token_id,
+            price=request.price,
+            size=request.size,
+            side=request.side.value.upper(),
+            expiration=request.expires_at
         )
         order = self._py_client.create_order(order_args)
-        return self._py_client.post_order(order, OrderType.GTD)
+        raw_response = self._py_client.post_order(order, OrderType.GTD)
+        return OrderResponse.from_raw_response(raw_response)
 
     def get_open_orders(self, market: str | None = None) -> OrderList:
         """
