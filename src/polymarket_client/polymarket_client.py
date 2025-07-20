@@ -309,10 +309,6 @@ class PolymarketClient:
         """Get comprehensive trade history."""
         return self.clob_client.get_market_trades_history(market_id, limit, offset)
 
-    def get_orders(self, **kwargs) -> dict[str, Any]:
-        """Get orders."""
-        return self.clob_client.get_orders(**kwargs)
-
     def cancel_order(self, order_id: str) -> dict[str, Any]:
         """Cancel an order."""
         return self.clob_client.cancel_order(order_id)
