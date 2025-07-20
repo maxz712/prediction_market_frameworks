@@ -304,15 +304,6 @@ class PolymarketClient:
         """Get order book for a token."""
         return self.clob_client.get_order_book(token_id)
 
-    def get_market_depth(self, token_id: str, depth: int = 10) -> dict[str, Any]:
-        """Get detailed market depth."""
-        return self.clob_client.get_market_depth(token_id, depth)
-
-    # Trading methods (CLOB API)
-    def get_trades(self, market: str, **kwargs) -> dict[str, Any]:
-        """Get trades for a market."""
-        return self.clob_client.get_trades(market, **kwargs)
-
     def get_market_trades_history(self, market_id: str, limit: int = 100,
                                  offset: int = 0) -> dict[str, Any]:
         """Get comprehensive trade history."""

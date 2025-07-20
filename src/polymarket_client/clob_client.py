@@ -154,21 +154,6 @@ class ClobClient:
         response.raise_for_status()
         return response.json()
 
-    def get_market_depth(self, token_id: str, depth: int = 10) -> dict[str, Any]:
-        """
-        Get market depth with specified number of levels.
-        Extended endpoint for more detailed order book data.
-        """
-        url = f"{self.config.get_endpoint('clob')}/book"
-        params = {
-            "token_id": token_id,
-            "depth": depth
-        }
-
-        response = self._session.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
-
     def get_market_statistics(self, market_id: str) -> dict[str, Any]:
         """
         Get comprehensive market statistics.
