@@ -12,7 +12,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .configs.polymarket_configs import PolymarketConfig
-from .models import Market, OrderBook
+from .models import Market, OrderBook, OrderList
 
 
 class ClobClient:
@@ -315,16 +315,22 @@ class ClobClient:
         order = self._py_client.create_order(order_args)
         return self._py_client.post_order(order, OrderType.GTD)
 
-    def get_open_orders(self, market: str | None = None) -> dict[str, Any]:
+    def get_open_orders(self, market: str | None = None) -> OrderList:
         """
         Get current open orders for the authenticated user.
         
         Args:
             market: Optional market filter
+            
+        Returns:
+            OrderList: A custom data model containing the list of open orders
         """
         if market:
-            return self.get_orders(market=market)
-        return self.get_orders()
+            raw_response = self.get_orders(market=market)
+        else:
+            raw_response = self.get_orders()
+        
+        return OrderList.from_raw_response(raw_response)
 
     def get_current_user_position(self, market: str | None = None) -> dict[str, Any]:
         """

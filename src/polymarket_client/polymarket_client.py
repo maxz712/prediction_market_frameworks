@@ -5,7 +5,7 @@ from .clob_client import ClobClient
 from .configs.polymarket_configs import PolymarketConfig
 from .exceptions import PolymarketConfigurationError
 from .gamma_client import GammaClient
-from .models import Event, Market, OrderBook, PaginatedResponse
+from .models import Event, Market, OrderBook, OrderList, PaginatedResponse
 
 
 class PolymarketClient:
@@ -341,8 +341,15 @@ class PolymarketClient:
         """Submit a Good Till Date (GTD) limit order."""
         return self.clob_client.submit_limit_order_gtd(token_id, side, size, price, expires_at)
 
-    def get_open_orders(self, market: str | None = None) -> dict[str, Any]:
-        """Get current open orders for the authenticated user."""
+    def get_open_orders(self, market: str | None = None) -> OrderList:
+        """Get current open orders for the authenticated user.
+        
+        Args:
+            market: Optional market filter
+            
+        Returns:
+            OrderList: A custom data model containing the list of open orders
+        """
         return self.clob_client.get_open_orders(market)
 
     def get_current_user_position(self, market: str | None = None) -> dict[str, Any]:
