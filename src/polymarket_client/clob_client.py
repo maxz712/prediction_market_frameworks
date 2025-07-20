@@ -309,7 +309,7 @@ class ClobClient:
         """
         if request.expires_at is None:
             raise ValueError("expires_at must be set for GTD orders")
-            
+
         order_args = OrderArgs(
             token_id=request.token_id,
             price=request.price,
@@ -335,7 +335,7 @@ class ClobClient:
             raw_response = self.get_orders(market=market)
         else:
             raw_response = self.get_orders()
-        
+
         return OrderList.from_raw_response(raw_response)
 
     def get_current_user_position(self, market: str | None = None) -> dict[str, Any]:

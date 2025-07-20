@@ -227,61 +227,61 @@ class Event(BaseModel):
 
 class EventList(BaseModel):
     """Container for multiple events with pagination info."""
-    
+
     events: list[Event] = Field(default_factory=list, description="List of events")
     total: int | None = Field(None, description="Total number of events matching the query")
     limit: int | None = Field(None, description="Limit used in the query")
     offset: int | None = Field(None, description="Offset used in the query")
-    
+
     @classmethod
     def from_raw_response(cls, raw_response: dict | list) -> "EventList":
         """Create an EventList from raw API response."""
         events = []
-        
+
         # Handle different response formats
         if isinstance(raw_response, list):
             # Response is just a list of events
             events = [Event.from_raw_data(event) for event in raw_response]
             return cls(events=events, total=len(events), limit=None, offset=None)
-        
+
         # Response is a dict with events and possibly pagination info
         raw_events = raw_response.get("events", raw_response.get("data", []))
         if isinstance(raw_events, list):
             events = [Event.from_raw_data(event) for event in raw_events]
-        
+
         return cls(
             events=events,
             total=raw_response.get("total", raw_response.get("count")),
             limit=raw_response.get("limit"),
             offset=raw_response.get("offset")
         )
-    
+
     def __iter__(self):
         """Make EventList iterable."""
         return iter(self.events)
-    
+
     def __len__(self):
         """Return the number of events."""
         return len(self.events)
-    
+
     def __getitem__(self, index):
         """Allow indexing into the events list."""
         return self.events[index]
-    
+
     def filter_by_status(self, active: bool = True, closed: bool = False, archived: bool = False) -> list[Event]:
         """Filter events by status."""
         return [
-            event for event in self.events 
+            event for event in self.events
             if event.active == active and event.closed == closed and event.archived == archived
         ]
-    
+
     def filter_by_tag(self, tag_slug: str) -> list[Event]:
         """Filter events by tag slug."""
         return [
-            event for event in self.events 
+            event for event in self.events
             if any(tag.slug == tag_slug for tag in event.tags)
         ]
-    
+
     def filter_by_volume_range(self, min_volume: Decimal = None, max_volume: Decimal = None) -> list[Event]:
         """Filter events by volume range."""
         filtered = self.events
@@ -290,22 +290,22 @@ class EventList(BaseModel):
         if max_volume is not None:
             filtered = [event for event in filtered if event.volume <= max_volume]
         return filtered
-    
+
     @property
     def active_events(self) -> list[Event]:
         """Get only active events."""
         return [event for event in self.events if event.is_active]
-    
+
     @property
     def featured_events(self) -> list[Event]:
         """Get only featured events."""
         return [event for event in self.events if event.is_featured]
-    
+
     @property
     def closed_events(self) -> list[Event]:
         """Get only closed events."""
         return [event for event in self.events if event.closed]
-    
+
     @property
     def total_volume(self) -> Decimal:
         """Calculate total volume across all events."""

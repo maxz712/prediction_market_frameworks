@@ -5,7 +5,16 @@ from .clob_client import ClobClient
 from .configs.polymarket_configs import PolymarketConfig
 from .exceptions import PolymarketConfigurationError
 from .gamma_client import GammaClient
-from .models import Event, EventList, LimitOrderRequest, Market, OrderBook, OrderList, OrderResponse, PaginatedResponse
+from .models import (
+    Event,
+    EventList,
+    LimitOrderRequest,
+    Market,
+    OrderBook,
+    OrderList,
+    OrderResponse,
+    PaginatedResponse,
+)
 
 
 class PolymarketClient:
