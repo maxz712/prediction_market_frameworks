@@ -13,7 +13,7 @@ from .exceptions import (
     PolymarketNetworkError,
     PolymarketValidationError,
 )
-from .models import Event, PaginatedResponse, PaginationInfo
+from .models import Event, EventList, PaginatedResponse, PaginationInfo
 
 
 class GammaClient:
@@ -128,7 +128,7 @@ class GammaClient:
         tag_id: int | list[int] | None = None,
         related_tags: bool | None = None,
         tag_slug: str | list[str] | None = None
-    ) -> list[Event]:
+    ) -> EventList:
         """Retrieves events from the Gamma API.
         
         Args:
@@ -156,7 +156,7 @@ class GammaClient:
             tag_slug: Filter by tag slug, can be string or list of strings
             
         Returns:
-            List of Event objects
+            EventList containing Event objects with pagination metadata
             
         Raises:
             PolymarketValidationError: If parameters are invalid
@@ -172,7 +172,7 @@ class GammaClient:
         # Validate and warn about large requests
         self._validate_and_warn_limit(limit, auto_paginate)
 
-        # For backward compatibility, return just the events
+        # Get paginated response and convert to EventList
         paginated_response = self.get_events_paginated(
             limit=limit,
             offset=offset,
@@ -198,7 +198,13 @@ class GammaClient:
             tag_slug=tag_slug
         )
 
-        return paginated_response.data
+        # Convert to EventList with pagination metadata
+        return EventList(
+            events=paginated_response.data,
+            total=len(paginated_response.data),
+            limit=limit,
+            offset=offset
+        )
 
     def get_events_paginated(
         self,

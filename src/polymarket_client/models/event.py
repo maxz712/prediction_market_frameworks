@@ -196,5 +196,117 @@ class Event(BaseModel):
     pending_deployment: bool = Field(alias="pendingDeployment")
     deploying: bool
 
+    @classmethod
+    def from_raw_data(cls, raw_event: dict) -> "Event":
+        """Create an Event instance from raw API response data."""
+        return cls(**raw_event)
+
+    @property
+    def is_active(self) -> bool:
+        """Check if the event is currently active."""
+        return self.active and not self.closed and not self.archived
+
+    @property
+    def is_featured(self) -> bool:
+        """Check if the event is featured."""
+        return self.featured
+
+    @property
+    def total_volume(self) -> Decimal:
+        """Get the total volume for this event."""
+        return self.volume
+
+    @property
+    def active_markets(self) -> list[Market]:
+        """Get only active markets for this event."""
+        return [market for market in self.markets if market.active and not market.closed]
+
     class Config:
         populate_by_name = True
+
+
+class EventList(BaseModel):
+    """Container for multiple events with pagination info."""
+    
+    events: list[Event] = Field(default_factory=list, description="List of events")
+    total: int | None = Field(None, description="Total number of events matching the query")
+    limit: int | None = Field(None, description="Limit used in the query")
+    offset: int | None = Field(None, description="Offset used in the query")
+    
+    @classmethod
+    def from_raw_response(cls, raw_response: dict | list) -> "EventList":
+        """Create an EventList from raw API response."""
+        events = []
+        
+        # Handle different response formats
+        if isinstance(raw_response, list):
+            # Response is just a list of events
+            events = [Event.from_raw_data(event) for event in raw_response]
+            return cls(events=events, total=len(events), limit=None, offset=None)
+        
+        # Response is a dict with events and possibly pagination info
+        raw_events = raw_response.get("events", raw_response.get("data", []))
+        if isinstance(raw_events, list):
+            events = [Event.from_raw_data(event) for event in raw_events]
+        
+        return cls(
+            events=events,
+            total=raw_response.get("total", raw_response.get("count")),
+            limit=raw_response.get("limit"),
+            offset=raw_response.get("offset")
+        )
+    
+    def __iter__(self):
+        """Make EventList iterable."""
+        return iter(self.events)
+    
+    def __len__(self):
+        """Return the number of events."""
+        return len(self.events)
+    
+    def __getitem__(self, index):
+        """Allow indexing into the events list."""
+        return self.events[index]
+    
+    def filter_by_status(self, active: bool = True, closed: bool = False, archived: bool = False) -> list[Event]:
+        """Filter events by status."""
+        return [
+            event for event in self.events 
+            if event.active == active and event.closed == closed and event.archived == archived
+        ]
+    
+    def filter_by_tag(self, tag_slug: str) -> list[Event]:
+        """Filter events by tag slug."""
+        return [
+            event for event in self.events 
+            if any(tag.slug == tag_slug for tag in event.tags)
+        ]
+    
+    def filter_by_volume_range(self, min_volume: Decimal = None, max_volume: Decimal = None) -> list[Event]:
+        """Filter events by volume range."""
+        filtered = self.events
+        if min_volume is not None:
+            filtered = [event for event in filtered if event.volume >= min_volume]
+        if max_volume is not None:
+            filtered = [event for event in filtered if event.volume <= max_volume]
+        return filtered
+    
+    @property
+    def active_events(self) -> list[Event]:
+        """Get only active events."""
+        return [event for event in self.events if event.is_active]
+    
+    @property
+    def featured_events(self) -> list[Event]:
+        """Get only featured events."""
+        return [event for event in self.events if event.is_featured]
+    
+    @property
+    def closed_events(self) -> list[Event]:
+        """Get only closed events."""
+        return [event for event in self.events if event.closed]
+    
+    @property
+    def total_volume(self) -> Decimal:
+        """Calculate total volume across all events."""
+        return sum(event.volume for event in self.events)

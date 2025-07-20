@@ -5,7 +5,7 @@ from .clob_client import ClobClient
 from .configs.polymarket_configs import PolymarketConfig
 from .exceptions import PolymarketConfigurationError
 from .gamma_client import GammaClient
-from .models import Event, LimitOrderRequest, Market, OrderBook, OrderList, OrderResponse, PaginatedResponse
+from .models import Event, EventList, LimitOrderRequest, Market, OrderBook, OrderList, OrderResponse, PaginatedResponse
 
 
 class PolymarketClient:
@@ -66,7 +66,7 @@ class PolymarketClient:
         tag_id: int | list[int] | None = None,
         related_tags: bool | None = None,
         tag_slug: str | list[str] | None = None
-    ) -> list[Event]:
+    ) -> EventList:
         """Get events from Gamma API with comprehensive filtering options.
         
         Args:
@@ -232,7 +232,7 @@ class PolymarketClient:
             tag_slug=tag_slug
         )
 
-    def get_active_events(self, limit: int = 100) -> list[Event]:
+    def get_active_events(self, limit: int = 100) -> EventList:
         """Get currently active events."""
         return self.get_events(active=True, closed=False, limit=limit)
 
@@ -243,7 +243,7 @@ class PolymarketClient:
         active: bool | None = None,
         closed: bool | None = None,
         **kwargs
-    ) -> list[Event]:
+    ) -> EventList:
         """Get events by their slug(s) - convenience function.
         
         Args:
@@ -254,7 +254,7 @@ class PolymarketClient:
             **kwargs: Additional filtering parameters (e.g., liquidity_min, volume_min, etc.)
             
         Returns:
-            List of Event objects matching the slug(s)
+            EventList containing Event objects matching the slug(s)
             
         Examples:
             # Get single event by slug
