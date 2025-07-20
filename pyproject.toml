@@ -71,6 +71,7 @@ markers = [
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+respect-gitignore = true
 extend-exclude = ["migrations"]
 
 [tool.ruff.lint]

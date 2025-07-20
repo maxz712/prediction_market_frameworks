@@ -1,6 +1,6 @@
 """Validation-related exceptions for the Polymarket SDK."""
 
-from typing import Dict, Any, List, Optional
+from typing import Any
 
 from .base import PolymarketError
 
@@ -11,13 +11,13 @@ class PolymarketValidationError(PolymarketError):
     This is raised when input data doesn't meet the required format,
     constraints, or business rules.
     """
-    
+
     def __init__(
-        self, 
-        message: str, 
-        field: Optional[str] = None,
-        value: Optional[Any] = None,
-        errors: Optional[Dict[str, List[str]]] = None
+        self,
+        message: str,
+        field: str | None = None,
+        value: Any | None = None,
+        errors: dict[str, list[str]] | None = None
     ) -> None:
         """Initialize the validation error.
         
@@ -31,7 +31,7 @@ class PolymarketValidationError(PolymarketError):
         self.field = field
         self.value = value
         self.errors = errors or {}
-    
+
     def __str__(self) -> str:
         error_msg = super().__str__()
         if self.field:
@@ -49,12 +49,12 @@ class PolymarketFieldValidationError(PolymarketValidationError):
     - Fields with invalid formats
     - Fields outside allowed ranges
     """
-    
+
     def __init__(
-        self, 
-        field: str, 
-        message: str, 
-        value: Optional[Any] = None,
+        self,
+        field: str,
+        message: str,
+        value: Any | None = None,
         **kwargs
     ) -> None:
         super().__init__(message, field=field, value=value, **kwargs)
@@ -68,13 +68,13 @@ class PolymarketTypeValidationError(PolymarketValidationError):
     - Invalid enum values
     - Incorrect data structures
     """
-    
+
     def __init__(
-        self, 
-        field: str, 
-        expected_type: str, 
+        self,
+        field: str,
+        expected_type: str,
         actual_type: str,
-        value: Optional[Any] = None
+        value: Any | None = None
     ) -> None:
         message = f"Expected {expected_type}, got {actual_type}"
         super().__init__(message, field=field, value=value)
@@ -90,13 +90,13 @@ class PolymarketRangeValidationError(PolymarketValidationError):
     - Strings too long or too short
     - Arrays with invalid lengths
     """
-    
+
     def __init__(
-        self, 
-        field: str, 
+        self,
+        field: str,
         value: Any,
-        min_value: Optional[Any] = None,
-        max_value: Optional[Any] = None
+        min_value: Any | None = None,
+        max_value: Any | None = None
     ) -> None:
         if min_value is not None and max_value is not None:
             message = f"Value must be between {min_value} and {max_value}"
@@ -106,7 +106,7 @@ class PolymarketRangeValidationError(PolymarketValidationError):
             message = f"Value must be at most {max_value}"
         else:
             message = "Value is outside allowed range"
-        
+
         super().__init__(message, field=field, value=value)
         self.min_value = min_value
         self.max_value = max_value
@@ -117,7 +117,7 @@ class PolymarketRequiredFieldError(PolymarketValidationError):
     
     This is a specific type of validation error for missing required fields.
     """
-    
+
     def __init__(self, field: str) -> None:
         message = f"Required field '{field}' is missing"
         super().__init__(message, field=field)
@@ -132,18 +132,18 @@ class PolymarketFormatValidationError(PolymarketValidationError):
     - Incorrect date formats
     - Invalid market IDs or condition IDs
     """
-    
+
     def __init__(
-        self, 
-        field: str, 
-        value: Any, 
+        self,
+        field: str,
+        value: Any,
         expected_format: str,
-        pattern: Optional[str] = None
+        pattern: str | None = None
     ) -> None:
         message = f"Invalid format. Expected: {expected_format}"
         if pattern:
             message += f" (Pattern: {pattern})"
-        
+
         super().__init__(message, field=field, value=value)
         self.expected_format = expected_format
         self.pattern = pattern
@@ -158,11 +158,11 @@ class PolymarketBusinessRuleError(PolymarketValidationError):
     - Orders placed on closed markets
     - Invalid price/size combinations
     """
-    
-    def __init__(self, message: str, rule: Optional[str] = None, **kwargs) -> None:
+
+    def __init__(self, message: str, rule: str | None = None, **kwargs) -> None:
         super().__init__(message, **kwargs)
         self.rule = rule
-    
+
     def __str__(self) -> str:
         error_msg = super().__str__()
         if self.rule:

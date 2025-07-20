@@ -1,13 +1,17 @@
 from __future__ import annotations
-from typing import List, Optional, Iterator, Any
+
+from collections.abc import Iterator
+from typing import Any
+
 from pydantic import BaseModel, field_validator
+
 
 class BookLevel(BaseModel):
     price: float
     volume: float
     total: float  # cumulative volume at or before this level
 
-    @field_validator('price', 'volume', 'total')
+    @field_validator("price", "volume", "total")
     @classmethod
     def validate_non_negative(cls, v: float) -> float:
         if v < 0:
@@ -22,23 +26,23 @@ class OrderBook(BaseModel):
     asset_id: str
     timestamp: int
     hash: str
-    bids: List[BookLevel]
-    asks: List[BookLevel]
+    bids: list[BookLevel]
+    asks: list[BookLevel]
 
-    def best_bid(self) -> Optional[BookLevel]:
+    def best_bid(self) -> BookLevel | None:
         """Return the highest bid, or None if no bids."""
         return self.bids[0] if self.bids else None
 
-    def best_ask(self) -> Optional[BookLevel]:
+    def best_ask(self) -> BookLevel | None:
         """Return the lowest ask, or None if no asks."""
         return self.asks[0] if self.asks else None
 
-    def spread(self) -> Optional[float]:
+    def spread(self) -> float | None:
         """Return the bid-ask spread, or None if incomplete book."""
         bb, ba = self.best_bid(), self.best_ask()
         return None if bb is None or ba is None else ba.price - bb.price
 
-    def mid_price(self) -> Optional[float]:
+    def mid_price(self) -> float | None:
         """Return the mid-price, or None if incomplete book."""
         bb, ba = self.best_bid(), self.best_ask()
         return None if bb is None or ba is None else (bb.price + ba.price) / 2
@@ -64,20 +68,20 @@ class OrderBook(BaseModel):
             raise ValueError("side must be 'bids' or 'asks'")
 
     @classmethod
-    def from_raw_data(cls, market_id: str, asset_id: str, timestamp: int, hash: str, 
-                      raw_bids: List[Any], raw_asks: List[Any]) -> 'OrderBook':
+    def from_raw_data(cls, market_id: str, asset_id: str, timestamp: int, hash: str,
+                      raw_bids: list[Any], raw_asks: list[Any]) -> OrderBook:
         """Create OrderBook from raw bid/ask data with level conversion."""
-        def convert_levels(raw_levels: List[Any], is_bid: bool = False) -> List[dict]:
+        def convert_levels(raw_levels: list[Any], is_bid: bool = False) -> list[dict]:
             parsed = [(float(r.price), float(r.size)) for r in raw_levels]
             sorted_levels = sorted(parsed, key=lambda p: -p[0]) if is_bid else sorted(parsed, key=lambda p: p[0])
-            
+
             levels = []
             total = 0.0
             for price, vol in sorted_levels:
                 total += vol
                 levels.append({"price": price, "volume": vol, "total": total})
             return levels
-        
+
         return cls.model_validate({
             "market_id": market_id,
             "asset_id": asset_id,

@@ -1,11 +1,11 @@
-from typing import List, Dict, Any, Optional, Generator, Union
-from py_clob_client.clob_types import OrderBookSummary
+from collections.abc import Generator
+from typing import Any
 
-from .gamma_client import GammaClient
 from .clob_client import ClobClient
 from .configs.polymarket_configs import PolymarketConfig
-from .models import Event, Market, OrderBook, PaginatedResponse
 from .exceptions import PolymarketConfigurationError
+from .gamma_client import GammaClient
+from .models import Event, Market, OrderBook, PaginatedResponse
 
 
 class PolymarketClient:
@@ -13,8 +13,8 @@ class PolymarketClient:
     Unified client for accessing all Polymarket APIs.
     Wraps both Gamma API (events/markets) and CLOB API (trading/order books).
     """
-    
-    def __init__(self, config: Optional[PolymarketConfig] = None) -> None:
+
+    def __init__(self, config: PolymarketConfig | None = None) -> None:
         """
         Initialize the unified Polymarket client.
         
@@ -29,44 +29,44 @@ class PolymarketClient:
                     "Failed to load configuration from environment variables. "
                     "Please provide a config object or set the required environment variables."
                 ) from e
-        
+
         self.config = config
         self.gamma_client = GammaClient(config)
         self.clob_client = ClobClient(config)
-    
+
     # Event-related methods (Gamma API)
     def get_events(
-        self, 
+        self,
         # Pagination parameters
-        limit: Optional[int] = None,
+        limit: int | None = None,
         offset: int = 0,
-        auto_paginate: Optional[bool] = None,
+        auto_paginate: bool | None = None,
         # Sorting parameters
-        order: Optional[str] = None,
+        order: str | None = None,
         ascending: bool = True,
         # ID and slug filters
-        event_id: Optional[Union[int, List[int]]] = None,
-        slug: Optional[Union[str, List[str]]] = None,
+        event_id: int | list[int] | None = None,
+        slug: str | list[str] | None = None,
         # Status filters
-        archived: Optional[bool] = None,
-        active: Optional[bool] = True,
-        closed: Optional[bool] = False,
+        archived: bool | None = None,
+        active: bool | None = True,
+        closed: bool | None = False,
         # Volume and liquidity filters
-        liquidity_min: Optional[float] = None,
-        liquidity_max: Optional[float] = None,
-        volume_min: Optional[float] = None,
-        volume_max: Optional[float] = None,
+        liquidity_min: float | None = None,
+        liquidity_max: float | None = None,
+        volume_min: float | None = None,
+        volume_max: float | None = None,
         # Date filters
-        start_date_min: Optional[str] = None,
-        start_date_max: Optional[str] = None,
-        end_date_min: Optional[str] = None,
-        end_date_max: Optional[str] = None,
+        start_date_min: str | None = None,
+        start_date_max: str | None = None,
+        end_date_min: str | None = None,
+        end_date_max: str | None = None,
         # Tag filters
-        tag: Optional[Union[str, List[str]]] = None,
-        tag_id: Optional[Union[int, List[int]]] = None,
-        related_tags: Optional[bool] = None,
-        tag_slug: Optional[Union[str, List[str]]] = None
-    ) -> List[Event]:
+        tag: str | list[str] | None = None,
+        tag_id: int | list[int] | None = None,
+        related_tags: bool | None = None,
+        tag_slug: str | list[str] | None = None
+    ) -> list[Event]:
         """Get events from Gamma API with comprehensive filtering options.
         
         Args:
@@ -117,38 +117,38 @@ class PolymarketClient:
             related_tags=related_tags,
             tag_slug=tag_slug
         )
-    
+
     def get_events_paginated(
-        self, 
+        self,
         # Pagination parameters
-        limit: Optional[int] = None,
+        limit: int | None = None,
         offset: int = 0,
-        auto_paginate: Optional[bool] = None,
+        auto_paginate: bool | None = None,
         # Sorting parameters
-        order: Optional[str] = None,
+        order: str | None = None,
         ascending: bool = True,
         # ID and slug filters
-        event_id: Optional[Union[int, List[int]]] = None,
-        slug: Optional[Union[str, List[str]]] = None,
+        event_id: int | list[int] | None = None,
+        slug: str | list[str] | None = None,
         # Status filters
-        archived: Optional[bool] = None,
-        active: Optional[bool] = True,
-        closed: Optional[bool] = False,
+        archived: bool | None = None,
+        active: bool | None = True,
+        closed: bool | None = False,
         # Volume and liquidity filters
-        liquidity_min: Optional[float] = None,
-        liquidity_max: Optional[float] = None,
-        volume_min: Optional[float] = None,
-        volume_max: Optional[float] = None,
+        liquidity_min: float | None = None,
+        liquidity_max: float | None = None,
+        volume_min: float | None = None,
+        volume_max: float | None = None,
         # Date filters
-        start_date_min: Optional[str] = None,
-        start_date_max: Optional[str] = None,
-        end_date_min: Optional[str] = None,
-        end_date_max: Optional[str] = None,
+        start_date_min: str | None = None,
+        start_date_max: str | None = None,
+        end_date_min: str | None = None,
+        end_date_max: str | None = None,
         # Tag filters
-        tag: Optional[Union[str, List[str]]] = None,
-        tag_id: Optional[Union[int, List[int]]] = None,
-        related_tags: Optional[bool] = None,
-        tag_slug: Optional[Union[str, List[str]]] = None
+        tag: str | list[str] | None = None,
+        tag_id: int | list[int] | None = None,
+        related_tags: bool | None = None,
+        tag_slug: str | list[str] | None = None
     ) -> PaginatedResponse[Event]:
         """Get events from Gamma API with pagination metadata and comprehensive filtering options."""
         return self.gamma_client.get_events_paginated(
@@ -175,37 +175,37 @@ class PolymarketClient:
             related_tags=related_tags,
             tag_slug=tag_slug
         )
-    
+
     def iter_events(
-        self, 
+        self,
         # Pagination parameters
-        page_size: Optional[int] = None,
+        page_size: int | None = None,
         offset: int = 0,
         # Sorting parameters
-        order: Optional[str] = None,
+        order: str | None = None,
         ascending: bool = True,
         # ID and slug filters
-        event_id: Optional[Union[int, List[int]]] = None,
-        slug: Optional[Union[str, List[str]]] = None,
+        event_id: int | list[int] | None = None,
+        slug: str | list[str] | None = None,
         # Status filters
-        archived: Optional[bool] = None,
-        active: Optional[bool] = True,
-        closed: Optional[bool] = False,
+        archived: bool | None = None,
+        active: bool | None = True,
+        closed: bool | None = False,
         # Volume and liquidity filters
-        liquidity_min: Optional[float] = None,
-        liquidity_max: Optional[float] = None,
-        volume_min: Optional[float] = None,
-        volume_max: Optional[float] = None,
+        liquidity_min: float | None = None,
+        liquidity_max: float | None = None,
+        volume_min: float | None = None,
+        volume_max: float | None = None,
         # Date filters
-        start_date_min: Optional[str] = None,
-        start_date_max: Optional[str] = None,
-        end_date_min: Optional[str] = None,
-        end_date_max: Optional[str] = None,
+        start_date_min: str | None = None,
+        start_date_max: str | None = None,
+        end_date_min: str | None = None,
+        end_date_max: str | None = None,
         # Tag filters
-        tag: Optional[Union[str, List[str]]] = None,
-        tag_id: Optional[Union[int, List[int]]] = None,
-        related_tags: Optional[bool] = None,
-        tag_slug: Optional[Union[str, List[str]]] = None
+        tag: str | list[str] | None = None,
+        tag_id: int | list[int] | None = None,
+        related_tags: bool | None = None,
+        tag_slug: str | list[str] | None = None
     ) -> Generator[Event, None, None]:
         """Iterator for events that yields events one page at a time (memory efficient)."""
         return self.gamma_client.iter_events(
@@ -231,19 +231,19 @@ class PolymarketClient:
             related_tags=related_tags,
             tag_slug=tag_slug
         )
-    
-    def get_active_events(self, limit: int = 100) -> List[Event]:
+
+    def get_active_events(self, limit: int = 100) -> list[Event]:
         """Get currently active events."""
         return self.get_events(active=True, closed=False, limit=limit)
-    
+
     def get_events_by_slug(
-        self, 
-        slug: Union[str, List[str]],
-        limit: Optional[int] = None,
-        active: Optional[bool] = None,
-        closed: Optional[bool] = None,
+        self,
+        slug: str | list[str],
+        limit: int | None = None,
+        active: bool | None = None,
+        closed: bool | None = None,
         **kwargs
-    ) -> List[Event]:
+    ) -> list[Event]:
         """Get events by their slug(s) - convenience function.
         
         Args:
@@ -277,7 +277,7 @@ class PolymarketClient:
             closed=closed,
             **kwargs
         )
-    
+
     # Market-related methods
     def get_market(self, condition_id: str) -> Market:
         """Get market data from CLOB API.
@@ -289,91 +289,87 @@ class PolymarketClient:
             Market: A Market model instance with the market data
         """
         return self.clob_client.get_market(condition_id)
-    
-    def get_markets(self, market_id: str = None) -> Dict[str, Any]:
+
+    def get_markets(self, market_id: str = None) -> dict[str, Any]:
         """Get market data from Gamma API (skeleton - to be implemented)."""
         return self.gamma_client.get_markets(market_id)
-    
+
     # Order book and trading methods (CLOB API)
     def get_order_book(self, token_id: str) -> OrderBook:
         """Get order book for a token."""
         return self.clob_client.get_order_book(token_id)
-    
-    def get_order_book_raw(self, token_id: str) -> OrderBookSummary:
-        """Get raw order book summary."""
-        return self.clob_client.py_client.get_order_book(token_id)
-    
-    def get_market_depth(self, token_id: str, depth: int = 10) -> Dict[str, Any]:
+
+    def get_market_depth(self, token_id: str, depth: int = 10) -> dict[str, Any]:
         """Get detailed market depth."""
         return self.clob_client.get_market_depth(token_id, depth)
-    
+
     # Trading methods (CLOB API)
-    def get_trades(self, market: str, **kwargs) -> Dict[str, Any]:
+    def get_trades(self, market: str, **kwargs) -> dict[str, Any]:
         """Get trades for a market."""
         return self.clob_client.get_trades(market, **kwargs)
-    
+
     def get_market_trades_history(self, market_id: str, limit: int = 100,
-                                 offset: int = 0) -> Dict[str, Any]:
+                                 offset: int = 0) -> dict[str, Any]:
         """Get comprehensive trade history."""
         return self.clob_client.get_market_trades_history(market_id, limit, offset)
-    
-    def get_orders(self, **kwargs) -> Dict[str, Any]:
+
+    def get_orders(self, **kwargs) -> dict[str, Any]:
         """Get orders."""
         return self.clob_client.get_orders(**kwargs)
-    
-    def post_order(self, order_args: Dict[str, Any]) -> Dict[str, Any]:
+
+    def post_order(self, order_args: dict[str, Any]) -> dict[str, Any]:
         """Post an order."""
         return self.clob_client.post_order(order_args)
-    
-    def cancel_order(self, order_id: str) -> Dict[str, Any]:
+
+    def cancel_order(self, order_id: str) -> dict[str, Any]:
         """Cancel an order."""
         return self.clob_client.cancel_order(order_id)
-    
-    def cancel_orders(self, order_ids: list) -> Dict[str, Any]:
+
+    def cancel_orders(self, order_ids: list) -> dict[str, Any]:
         """Cancel multiple orders."""
         return self.clob_client.cancel_orders(order_ids)
-    
-    def cancel_all_orders(self) -> Dict[str, Any]:
+
+    def cancel_all_orders(self) -> dict[str, Any]:
         """Cancel all orders."""
         return self.clob_client.cancel_all()
-    
+
     # Trading execution methods
-    def submit_market_order(self, token_id: str, side: str, size: float) -> Dict[str, Any]:
+    def submit_market_order(self, token_id: str, side: str, size: float) -> dict[str, Any]:
         """Submit a market order for immediate execution."""
         return self.clob_client.submit_market_order(token_id, side, size)
-    
-    def submit_limit_order_gtc(self, token_id: str, side: str, size: float, price: float) -> Dict[str, Any]:
+
+    def submit_limit_order_gtc(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
         """Submit a limit order that is good till cancellation (GTC)."""
         return self.clob_client.submit_limit_order_gtc(token_id, side, size, price)
-    
-    def get_open_orders(self, market: Optional[str] = None) -> Dict[str, Any]:
+
+    def get_open_orders(self, market: str | None = None) -> dict[str, Any]:
         """Get current open orders for the authenticated user."""
         return self.clob_client.get_open_orders(market)
-    
-    def get_current_user_position(self, market: Optional[str] = None) -> Dict[str, Any]:
+
+    def get_current_user_position(self, market: str | None = None) -> dict[str, Any]:
         """Get current user position."""
         return self.clob_client.get_current_user_position(market)
-    
+
     # Analytics and statistics methods (CLOB API)
-    def get_market_statistics(self, market_id: str) -> Dict[str, Any]:
+    def get_market_statistics(self, market_id: str) -> dict[str, Any]:
         """Get market statistics."""
         return self.clob_client.get_market_statistics(market_id)
-    
-    def get_user_positions(self, user_address: str) -> Dict[str, Any]:
+
+    def get_user_positions(self, user_address: str) -> dict[str, Any]:
         """Get user positions."""
         return self.clob_client.get_user_positions(user_address)
-    
+
     def get_market_candles(self, market_id: str, interval: str = "1h",
-                          limit: int = 100) -> Dict[str, Any]:
+                          limit: int = 100) -> dict[str, Any]:
         """Get candlestick data."""
         return self.clob_client.get_market_candles(market_id, interval, limit)
-    
+
     # Access to underlying src for advanced usage
     @property
     def gamma(self) -> GammaClient:
         """Direct access to Gamma client."""
         return self.gamma_client
-    
+
     @property
     def clob(self) -> ClobClient:
         """Direct access to CLOB client."""

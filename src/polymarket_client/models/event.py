@@ -1,7 +1,7 @@
-from datetime import datetime
-from typing import List, Optional
-from decimal import Decimal
 import json
+from datetime import datetime
+from decimal import Decimal
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -10,21 +10,21 @@ class Tag(BaseModel):
     label: str
     slug: str
     force_show: bool = Field(default=False, alias="forceShow")
-    created_at: Optional[datetime] = Field(default=None, alias="createdAt")
-    published_at: Optional[datetime] = Field(default=None, alias="publishedAt")
-    updated_by: Optional[int] = Field(default=None, alias="updatedBy")
-    updated_at: Optional[datetime] = Field(default=None, alias="updatedAt")
-    force_hide: Optional[bool] = Field(default=None, alias="forceHide")
-    
-    @field_validator('published_at', mode='before')
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    published_at: datetime | None = Field(default=None, alias="publishedAt")
+    updated_by: int | None = Field(default=None, alias="updatedBy")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
+    force_hide: bool | None = Field(default=None, alias="forceHide")
+
+    @field_validator("published_at", mode="before")
     @classmethod
     def parse_published_at(cls, v):
         if v is None:
             return v
         if isinstance(v, str):
             # Handle format like '2023-11-02 21:23:16.384+00'
-            if v.endswith('+00'):
-                v = v + ':00'  # Convert to proper timezone format
+            if v.endswith("+00"):
+                v = v + ":00"  # Convert to proper timezone format
             return datetime.fromisoformat(v)
         return v
 
@@ -51,20 +51,20 @@ class Market(BaseModel):
     condition_id: str = Field(alias="conditionId")
     slug: str
     resolution_source: str = Field(default="", alias="resolutionSource")
-    end_date: Optional[datetime] = Field(default=None, alias="endDate")
+    end_date: datetime | None = Field(default=None, alias="endDate")
     liquidity: Decimal = Field(default=0)
-    start_date: Optional[datetime] = Field(default=None, alias="startDate")
+    start_date: datetime | None = Field(default=None, alias="startDate")
     image: str
     icon: str
     description: str
-    outcomes: List[str]
-    outcome_prices: List[Decimal] = Field(default=[], alias="outcomePrices")
+    outcomes: list[str]
+    outcome_prices: list[Decimal] = Field(default=[], alias="outcomePrices")
     volume: Decimal = Field(default=0)
     active: bool
     closed: bool
     market_maker_address: str = Field(alias="marketMakerAddress")
     created_at: datetime = Field(alias="createdAt")
-    updated_at: Optional[datetime] = Field(default=None, alias="updatedAt")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
     new: bool
     featured: bool = Field(default=False)
     submitted_by: str = Field(default="", alias="submittedBy")
@@ -86,7 +86,7 @@ class Market(BaseModel):
     volume_1wk: Decimal = Field(default=0, alias="volume1wk")
     volume_1mo: Decimal = Field(default=0, alias="volume1mo")
     volume_1yr: Decimal = Field(default=0, alias="volume1yr")
-    clob_token_ids: List[str] = Field(default=[], alias="clobTokenIds")
+    clob_token_ids: list[str] = Field(default=[], alias="clobTokenIds")
     uma_bond: Decimal = Field(default=0, alias="umaBond")
     uma_reward: Decimal = Field(default=0, alias="umaReward")
     volume_24hr_clob: Decimal = Field(default=0, alias="volume24hrClob")
@@ -99,12 +99,12 @@ class Market(BaseModel):
     neg_risk: bool = Field(default=False, alias="negRisk")
     ready: bool
     funded: bool
-    accepting_orders_timestamp: Optional[datetime] = Field(default=None, alias="acceptingOrdersTimestamp")
+    accepting_orders_timestamp: datetime | None = Field(default=None, alias="acceptingOrdersTimestamp")
     cyom: bool
     competitive: Decimal = Field(default=0)
     pager_duty_notification_enabled: bool = Field(alias="pagerDutyNotificationEnabled")
     approved: bool
-    clob_rewards: List[ClobReward] = Field(default=[], alias="clobRewards")
+    clob_rewards: list[ClobReward] = Field(default=[], alias="clobRewards")
     rewards_min_size: Decimal = Field(alias="rewardsMinSize")
     rewards_max_spread: Decimal = Field(alias="rewardsMaxSpread")
     spread: Decimal
@@ -118,33 +118,33 @@ class Market(BaseModel):
     clear_book_on_start: bool = Field(alias="clearBookOnStart")
     manual_activation: bool = Field(alias="manualActivation")
     neg_risk_other: bool = Field(alias="negRiskOther")
-    uma_resolution_statuses: List[str] = Field(alias="umaResolutionStatuses")
+    uma_resolution_statuses: list[str] = Field(alias="umaResolutionStatuses")
     pending_deployment: bool = Field(alias="pendingDeployment")
     deploying: bool
     rfq_enabled: bool = Field(alias="rfqEnabled")
-    
-    @field_validator('outcomes', mode='before')
+
+    @field_validator("outcomes", mode="before")
     @classmethod
     def parse_outcomes(cls, v):
         if isinstance(v, str):
             return json.loads(v)
         return v
-    
-    @field_validator('outcome_prices', mode='before')
+
+    @field_validator("outcome_prices", mode="before")
     @classmethod
     def parse_outcome_prices(cls, v):
         if isinstance(v, str):
             return [Decimal(price) for price in json.loads(v)]
         return [Decimal(str(price)) for price in v]
-    
-    @field_validator('clob_token_ids', mode='before')
+
+    @field_validator("clob_token_ids", mode="before")
     @classmethod
     def parse_clob_token_ids(cls, v):
         if isinstance(v, str):
             return json.loads(v)
         return v
-    
-    @field_validator('uma_resolution_statuses', mode='before')
+
+    @field_validator("uma_resolution_statuses", mode="before")
     @classmethod
     def parse_uma_resolution_statuses(cls, v):
         if isinstance(v, str):
@@ -161,8 +161,8 @@ class Event(BaseModel):
     slug: str
     title: str
     description: str
-    start_date: Optional[datetime] = Field(default=None, alias="startDate")
-    creation_date: Optional[datetime] = Field(default=None, alias="creationDate")
+    start_date: datetime | None = Field(default=None, alias="startDate")
+    creation_date: datetime | None = Field(default=None, alias="creationDate")
     end_date: datetime = Field(alias="endDate")
     image: str
     icon: str
@@ -185,8 +185,8 @@ class Event(BaseModel):
     enable_order_book: bool = Field(alias="enableOrderBook")
     liquidity_clob: Decimal = Field(default=0, alias="liquidityClob")
     comment_count: int = Field(default=0, alias="commentCount")
-    markets: List[Market]
-    tags: List[Tag]
+    markets: list[Market]
+    tags: list[Tag]
     cyom: bool
     show_all_outcomes: bool = Field(alias="showAllOutcomes")
     show_market_images: bool = Field(alias="showMarketImages")

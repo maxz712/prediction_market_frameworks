@@ -1,17 +1,18 @@
 """Basic usage examples for the Prediction Market Frameworks SDK."""
 
 import os
+
 from prediction_market_frameworks import (
     PolymarketClient,
     PolymarketConfig,
     PolymarketError,
-    PolymarketRateLimitError
+    PolymarketRateLimitError,
 )
 
 
 def main():
     """Demonstrate basic SDK usage."""
-    
+
     # Method 1: Simple initialization (uses environment variables)
     print("=== Method 1: Simple Initialization ===")
     try:
@@ -21,7 +22,7 @@ def main():
         print(f"❌ Failed to initialize: {e}")
         print("💡 Make sure to set POLYMARKET_API_KEY, POLYMARKET_API_SECRET, etc.")
         return
-    
+
     # Method 2: Explicit configuration
     print("\n=== Method 2: Explicit Configuration ===")
     config = PolymarketConfig(
@@ -36,7 +37,7 @@ def main():
     )
     client = PolymarketClient(config)
     print("✅ Client initialized with custom configuration")
-    
+
     # Example 1: Get active events
     print("\n=== Example 1: Get Active Events ===")
     try:
@@ -50,7 +51,7 @@ def main():
             print(f"   Retry after {e.retry_after} seconds")
     except PolymarketError as e:
         print(f"❌ Error fetching events: {e}")
-    
+
     # Example 2: Get market data
     print("\n=== Example 2: Get Market Data ===")
     try:
@@ -60,17 +61,17 @@ def main():
         print("📊 Market data example (requires valid condition_id)")
     except PolymarketError as e:
         print(f"❌ Error fetching market: {e}")
-    
+
     # Example 3: Health check
     print("\n=== Example 3: Health Check ===")
     try:
         health = client.gamma.health_check()
         print(f"🏥 Gamma API Status: {health['status']}")
-        if health['status'] == 'healthy':
+        if health["status"] == "healthy":
             print(f"   Response time: {health['response_time_ms']:.2f}ms")
     except Exception as e:
         print(f"❌ Health check failed: {e}")
-    
+
     # Example 4: Configuration info
     print("\n=== Example 4: Configuration Info ===")
     print(f"🔧 SDK Version: {client.config.sdk_version}")

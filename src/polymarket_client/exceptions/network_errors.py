@@ -1,6 +1,5 @@
 """Network-related exceptions for the Polymarket SDK."""
 
-from typing import Optional
 
 from .base import PolymarketError
 
@@ -11,12 +10,12 @@ class PolymarketNetworkError(PolymarketError):
     This is raised when there are issues with network connectivity,
     timeouts, or other transport-level problems.
     """
-    
+
     def __init__(
-        self, 
-        message: str = "Network error occurred", 
-        original_error: Optional[Exception] = None,
-        endpoint: Optional[str] = None
+        self,
+        message: str = "Network error occurred",
+        original_error: Exception | None = None,
+        endpoint: str | None = None
     ) -> None:
         """Initialize the network error.
         
@@ -28,7 +27,7 @@ class PolymarketNetworkError(PolymarketError):
         super().__init__(message)
         self.original_error = original_error
         self.endpoint = endpoint
-    
+
     def __str__(self) -> str:
         error_msg = super().__str__()
         if self.endpoint:
@@ -46,7 +45,7 @@ class PolymarketConnectionError(PolymarketNetworkError):
     - Connection refused
     - SSL/TLS handshake failures
     """
-    
+
     def __init__(self, message: str = "Failed to connect to API", **kwargs) -> None:
         super().__init__(message, **kwargs)
 
@@ -59,11 +58,11 @@ class PolymarketTimeoutError(PolymarketNetworkError):
     - Read timeouts
     - Request timeouts
     """
-    
+
     def __init__(
-        self, 
-        message: str = "Request timed out", 
-        timeout_duration: Optional[float] = None,
+        self,
+        message: str = "Request timed out",
+        timeout_duration: float | None = None,
         **kwargs
     ) -> None:
         """Initialize the timeout error.
@@ -75,7 +74,7 @@ class PolymarketTimeoutError(PolymarketNetworkError):
         """
         super().__init__(message, **kwargs)
         self.timeout_duration = timeout_duration
-    
+
     def __str__(self) -> str:
         error_msg = super().__str__()
         if self.timeout_duration:
@@ -91,7 +90,7 @@ class PolymarketSSLError(PolymarketNetworkError):
     - SSL handshake errors
     - Protocol mismatches
     """
-    
+
     def __init__(self, message: str = "SSL/TLS error", **kwargs) -> None:
         super().__init__(message, **kwargs)
 
@@ -104,7 +103,7 @@ class PolymarketProxyError(PolymarketNetworkError):
     - Proxy connection errors
     - Proxy configuration issues
     """
-    
+
     def __init__(self, message: str = "Proxy error", **kwargs) -> None:
         super().__init__(message, **kwargs)
 
@@ -117,6 +116,6 @@ class PolymarketDNSError(PolymarketNetworkError):
     - DNS server failures
     - DNS timeout errors
     """
-    
+
     def __init__(self, message: str = "DNS resolution failed", **kwargs) -> None:
         super().__init__(message, **kwargs)

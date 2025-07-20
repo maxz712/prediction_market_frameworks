@@ -1,18 +1,19 @@
 """Polymarket SDK models package."""
 
-from .event import Event, Tag, ClobReward, Market as EventMarket
+from .event import ClobReward, Event, Tag
+from .event import Market as EventMarket
 from .market import Market
-from .order_book import OrderBook, BookLevel
+from .order_book import BookLevel, OrderBook
 from .pagination import PaginatedResponse, PaginationInfo
 
 __all__ = [
-    "Event",
-    "Tag", 
+    "BookLevel",
     "ClobReward",
+    "Event",
     "EventMarket",
     "Market",
     "OrderBook",
-    "BookLevel",
     "PaginatedResponse",
-    "PaginationInfo"
+    "PaginationInfo",
+    "Tag"
 ]

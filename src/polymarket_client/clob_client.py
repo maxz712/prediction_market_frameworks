@@ -1,15 +1,15 @@
-from typing import Dict, Any, Optional, List
+from typing import Any
+
 import requests
+from py_clob_client.client import ClobClient as PyClobClient
+from py_clob_client.clob_types import (
+    BalanceAllowanceParams,
+    MarketOrderArgs,
+    OrderArgs,
+)
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from py_clob_client.client import ClobClient as PyClobClient
-from py_clob_client.clob_types import (
-    OrderBookSummary, 
-    OrderArgs, 
-    MarketOrderArgs, 
-    BalanceAllowanceParams
-)
 from .configs.polymarket_configs import PolymarketConfig
 from .models import Market, OrderBook
 
@@ -19,7 +19,7 @@ class ClobClient:
     Wrapper around py_clob_client.ClobClient that extends functionality
     with additional CLOB API endpoints not implemented in the base client.
     """
-    
+
     def __init__(self, config: PolymarketConfig) -> None:
         """Initialize the CLOB client.
         
@@ -27,7 +27,7 @@ class ClobClient:
             config: Polymarket configuration containing API credentials and endpoints
         """
         self.config = config
-        
+
         # Initialize the underlying py_clob_client
         # For proxy setups, use signature_type=2 and funder parameter
         if config.wallet_proxy_address:
@@ -47,22 +47,22 @@ class ClobClient:
                 chain_id=config.chain_id,
                 creds=config.api_creds
             )
-        
+
         # Initialize session for direct API calls
         self._session = self._init_session()
-    
+
     @classmethod
-    def from_config_dict(cls, config_dict: Dict[str, Any]) -> 'ClobClient':
+    def from_config_dict(cls, config_dict: dict[str, Any]) -> "ClobClient":
         """Create ClobClient from configuration dictionary."""
         config = PolymarketConfig(**config_dict)
         return cls(config)
-    
+
     @classmethod
-    def from_env(cls) -> 'ClobClient':
+    def from_env(cls) -> "ClobClient":
         """Create ClobClient from environment variables."""
         config = PolymarketConfig.from_env()
         return cls(config)
-    
+
     def _init_session(self) -> requests.Session:
         """Initialize session with retry strategy for direct API calls."""
         session = requests.Session()
@@ -75,7 +75,7 @@ class ClobClient:
         session.mount("http://", adapter)
         session.timeout = self.config.timeout
         return session
-    
+
     # Delegate existing methods to the underlying py_clob_client
     def get_market(self, condition_id: str) -> Market:
         """Get market data for a given condition ID.
@@ -88,7 +88,7 @@ class ClobClient:
         """
         market_data = self._py_client.get_market(condition_id)
         return Market.model_validate(market_data)
-    
+
     def get_order_book(self, token_id: str) -> OrderBook:
         """Get order book for a given token ID.
         
@@ -107,16 +107,16 @@ class ClobClient:
             raw_bids=summary.bids,
             raw_asks=summary.asks
         )
-    
-    def get_trades(self, market: str, **kwargs) -> Dict[str, Any]:
+
+    def get_trades(self, market: str, **kwargs) -> dict[str, Any]:
         """Get trades for a market."""
         return self._py_client.get_trades(market, **kwargs)
-    
-    def get_orders(self, **kwargs) -> Dict[str, Any]:
+
+    def get_orders(self, **kwargs) -> dict[str, Any]:
         """Get orders."""
         return self._py_client.get_orders(**kwargs)
-    
-    def post_order(self, order_args: Dict[str, Any]) -> Dict[str, Any]:
+
+    def post_order(self, order_args: dict[str, Any]) -> dict[str, Any]:
         """Post an order using OrderArgs."""
         # Convert dict to OrderArgs and use create_and_post_order
         order_args_obj = OrderArgs(
@@ -126,22 +126,22 @@ class ClobClient:
             side=order_args["side"],
         )
         return self._py_client.create_and_post_order(order_args_obj)
-    
-    def cancel_order(self, order_id: str) -> Dict[str, Any]:
+
+    def cancel_order(self, order_id: str) -> dict[str, Any]:
         """Cancel an order."""
         return self._py_client.cancel_order(order_id)
-    
-    def cancel_orders(self, order_ids: List[str]) -> Dict[str, Any]:
+
+    def cancel_orders(self, order_ids: list[str]) -> dict[str, Any]:
         """Cancel multiple orders."""
         return self._py_client.cancel_orders(order_ids)
-    
-    def cancel_all(self) -> Dict[str, Any]:
+
+    def cancel_all(self) -> dict[str, Any]:
         """Cancel all orders."""
         return self._py_client.cancel_all()
-    
+
     # Extended functionality - additional CLOB API endpoints
-    def get_market_trades_history(self, market_id: str, limit: int = 100, 
-                                 offset: int = 0) -> Dict[str, Any]:
+    def get_market_trades_history(self, market_id: str, limit: int = 100,
+                                 offset: int = 0) -> dict[str, Any]:
         """
         Get comprehensive trade history for a market.
         Extended endpoint not available in base py_clob_client.
@@ -152,12 +152,12 @@ class ClobClient:
             "limit": limit,
             "offset": offset
         }
-        
+
         response = self._session.get(url, params=params)
         response.raise_for_status()
         return response.json()
-    
-    def get_market_depth(self, token_id: str, depth: int = 10) -> Dict[str, Any]:
+
+    def get_market_depth(self, token_id: str, depth: int = 10) -> dict[str, Any]:
         """
         Get market depth with specified number of levels.
         Extended endpoint for more detailed order book data.
@@ -167,36 +167,36 @@ class ClobClient:
             "token_id": token_id,
             "depth": depth
         }
-        
+
         response = self._session.get(url, params=params)
         response.raise_for_status()
         return response.json()
-    
-    def get_market_statistics(self, market_id: str) -> Dict[str, Any]:
+
+    def get_market_statistics(self, market_id: str) -> dict[str, Any]:
         """
         Get comprehensive market statistics.
         Extended endpoint for market analytics.
         """
         url = f"{self.config.get_endpoint('clob')}/markets/{market_id}/stats"
-        
+
         response = self._session.get(url)
         response.raise_for_status()
         return response.json()
-    
-    def get_user_positions(self, user_address: str) -> Dict[str, Any]:
+
+    def get_user_positions(self, user_address: str) -> dict[str, Any]:
         """
         Get user positions across all markets.
         Extended endpoint for position tracking.
         """
         url = f"{self.config.get_endpoint('clob')}/positions"
         params = {"user": user_address}
-        
+
         response = self._session.get(url, params=params)
         response.raise_for_status()
         return response.json()
-    
-    def get_market_candles(self, market_id: str, interval: str = "1h", 
-                          limit: int = 100) -> Dict[str, Any]:
+
+    def get_market_candles(self, market_id: str, interval: str = "1h",
+                          limit: int = 100) -> dict[str, Any]:
         """
         Get candlestick data for market price history.
         Extended endpoint for historical price data.
@@ -212,13 +212,13 @@ class ClobClient:
             "interval": interval,
             "limit": limit
         }
-        
+
         response = self._session.get(url, params=params)
         response.raise_for_status()
         return response.json()
-    
+
     # Trading execution methods
-    def submit_market_order(self, token_id: str, side: str, size: float) -> Dict[str, Any]:
+    def submit_market_order(self, token_id: str, side: str, size: float) -> dict[str, Any]:
         """
         Submit a market order for immediate execution.
         
@@ -235,8 +235,8 @@ class ClobClient:
         )
         order = self._py_client.create_market_order(market_order_args)
         return self._py_client.post_order(order)
-    
-    def submit_limit_order_gtc(self, token_id: str, side: str, size: float, price: float) -> Dict[str, Any]:
+
+    def submit_limit_order_gtc(self, token_id: str, side: str, size: float, price: float) -> dict[str, Any]:
         """
         Submit a limit order that is good till cancellation (GTC).
         
@@ -254,8 +254,8 @@ class ClobClient:
             side=side.upper()
         )
         return self._py_client.create_and_post_order(order_args)
-    
-    def get_open_orders(self, market: Optional[str] = None) -> Dict[str, Any]:
+
+    def get_open_orders(self, market: str | None = None) -> dict[str, Any]:
         """
         Get current open orders for the authenticated user.
         
@@ -266,8 +266,8 @@ class ClobClient:
         if market:
             params["market"] = market
         return self.get_orders(**params)
-    
-    def get_current_user_position(self, market: Optional[str] = None) -> Dict[str, Any]:
+
+    def get_current_user_position(self, market: str | None = None) -> dict[str, Any]:
         """
         Get current user position.
         
@@ -277,7 +277,7 @@ class ClobClient:
         # Get user address from credentials
         user_address = self.config.api_creds.api_key  # This might need adjustment based on actual API
         positions = self.get_user_positions(user_address)
-        
+
         if market:
             # Filter positions by market if specified
             filtered_positions = []
@@ -285,11 +285,11 @@ class ClobClient:
                 if position.get("market") == market:
                     filtered_positions.append(position)
             return {"positions": filtered_positions}
-        
+
         return positions
-    
+
     # Balance and Allowance Methods
-    def get_balance_allowance(self, asset_type: str = "COLLATERAL", token_id: str = None) -> Dict[str, Any]:
+    def get_balance_allowance(self, asset_type: str = "COLLATERAL", token_id: str = None) -> dict[str, Any]:
         """
         Get the current balance and allowance for USDC (collateral) or conditional tokens.
         
@@ -306,8 +306,8 @@ class ClobClient:
             signature_type=-1  # Will be set automatically by the client
         )
         return self._py_client.get_balance_allowance(params)
-    
-    def update_balance_allowance(self, asset_type: str = "COLLATERAL", token_id: str = None) -> Dict[str, Any]:
+
+    def update_balance_allowance(self, asset_type: str = "COLLATERAL", token_id: str = None) -> dict[str, Any]:
         """
         Update (refresh) the balance and allowance information.
         
@@ -324,8 +324,8 @@ class ClobClient:
             signature_type=-1  # Will be set automatically by the client
         )
         return self._py_client.update_balance_allowance(params)
-    
-    def get_usdc_balance_allowance(self) -> Dict[str, Any]:
+
+    def get_usdc_balance_allowance(self) -> dict[str, Any]:
         """
         Convenience method to get USDC (collateral) balance and allowance.
         
@@ -333,8 +333,8 @@ class ClobClient:
             Dictionary with USDC balance and allowance information
         """
         return self.get_balance_allowance(asset_type="COLLATERAL")
-    
-    def update_usdc_balance_allowance(self) -> Dict[str, Any]:
+
+    def update_usdc_balance_allowance(self) -> dict[str, Any]:
         """
         Convenience method to update USDC (collateral) balance and allowance.
         
@@ -342,7 +342,7 @@ class ClobClient:
             Dictionary with updated USDC balance and allowance information
         """
         return self.update_balance_allowance(asset_type="COLLATERAL")
-    
+
     def check_usdc_allowance_sufficient(self, required_amount: float) -> bool:
         """
         Check if the current USDC allowance is sufficient for a given amount.
@@ -356,12 +356,12 @@ class ClobClient:
         try:
             balance_info = self.get_usdc_balance_allowance()
             # The exact field names may vary, adjust based on actual response
-            current_allowance = float(balance_info.get('allowance', 0))
+            current_allowance = float(balance_info.get("allowance", 0))
             return current_allowance >= required_amount
         except Exception as e:
             print(f"Error checking allowance: {e}")
             return False
-    
+
     # Expose the underlying client for any methods not explicitly wrapped
     @property
     def py_client(self) -> PyClobClient:

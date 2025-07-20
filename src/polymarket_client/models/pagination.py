@@ -1,30 +1,31 @@
-from typing import List, Optional, TypeVar, Generic
+from typing import Generic, TypeVar
+
 from pydantic import BaseModel, Field
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 class PaginationInfo(BaseModel):
     """Pagination metadata for API responses."""
-    
-    total_count: Optional[int] = Field(None, description="Total number of items available")
+
+    total_count: int | None = Field(None, description="Total number of items available")
     page: int = Field(description="Current page number (1-based)")
     per_page: int = Field(description="Number of items per page")
     has_next: bool = Field(description="Whether there are more pages available")
     has_previous: bool = Field(description="Whether there are previous pages")
-    total_pages: Optional[int] = Field(None, description="Total number of pages")
-    
+    total_pages: int | None = Field(None, description="Total number of pages")
+
     @property
     def offset(self) -> int:
         """Calculate offset from page and per_page."""
         return (self.page - 1) * self.per_page
-    
+
     @classmethod
-    def from_offset(cls, offset: int, limit: int, total_returned: int, requested_limit: int) -> 'PaginationInfo':
+    def from_offset(cls, offset: int, limit: int, total_returned: int, requested_limit: int) -> "PaginationInfo":
         """Create pagination info from offset-based parameters."""
         page = (offset // limit) + 1
         has_next = total_returned == requested_limit  # If we got exactly what we asked for, there might be more
         has_previous = offset > 0
-        
+
         return cls(
             page=page,
             per_page=limit,
@@ -34,11 +35,11 @@ class PaginationInfo(BaseModel):
 
 class PaginatedResponse(BaseModel, Generic[T]):
     """Generic paginated response wrapper."""
-    
-    data: List[T] = Field(description="List of items in current page")
+
+    data: list[T] = Field(description="List of items in current page")
     pagination: PaginationInfo = Field(description="Pagination metadata")
-    
+
     @property
-    def items(self) -> List[T]:
+    def items(self) -> list[T]:
         """Alias for data for backward compatibility."""
         return self.data

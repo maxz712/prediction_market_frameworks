@@ -1,5 +1,5 @@
-from typing import List, Optional
 from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -9,7 +9,7 @@ class RewardRate(BaseModel):
 
 
 class Rewards(BaseModel):
-    rates: Optional[List[RewardRate]]
+    rates: list[RewardRate] | None
     min_size: int
     max_spread: float
 
@@ -36,7 +36,7 @@ class Market(BaseModel):
     description: str
     market_slug: str
     end_date_iso: datetime
-    game_start_time: Optional[datetime]
+    game_start_time: datetime | None
     seconds_delay: int
     fpmm: str
     maker_base_fee: int
@@ -49,5 +49,5 @@ class Market(BaseModel):
     image: str
     rewards: Rewards
     is_50_50_outcome: bool
-    tokens: List[Token]
-    tags: List[str]
+    tokens: list[Token]
+    tags: list[str]

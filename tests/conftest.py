@@ -1,7 +1,9 @@
 """Pytest configuration and fixtures."""
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
+
 from src.polymarket_client.configs.polymarket_configs import PolymarketConfig
 
 
@@ -10,7 +12,7 @@ def test_config():
     """Create a test configuration."""
     return PolymarketConfig(
         api_key="test_api_key",
-        api_secret="test_api_secret", 
+        api_secret="test_api_secret",
         api_passphrase="test_passphrase",
         pk="test_private_key",
         endpoints={

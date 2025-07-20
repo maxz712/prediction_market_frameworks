@@ -16,22 +16,19 @@ For more advanced usage:
 """
 
 # Import main client classes
-from .polymarket_client import (
-    PolymarketClient,
-    PolymarketConfig,
-    ClobClient,
-    GammaClient,
-)
-
 # Import commonly used exceptions
 from .polymarket_client import (
-    PolymarketError,
+    ClobClient,
+    GammaClient,
     PolymarketAPIError,
-    PolymarketValidationError,
-    PolymarketConfigurationError,
-    PolymarketRateLimitError,
     PolymarketAuthenticationError,
+    PolymarketClient,
+    PolymarketConfig,
+    PolymarketConfigurationError,
+    PolymarketError,
     PolymarketNetworkError,
+    PolymarketRateLimitError,
+    PolymarketValidationError,
 )
 
 # Import data models that users might need
@@ -51,23 +48,23 @@ __all__ = [
     # Main client classes
     "PolymarketClient",
     "PolymarketConfig",
-    "ClobClient", 
+    "ClobClient",
     "GammaClient",
-    
+
     # Core exceptions users need to handle
     "PolymarketError",
     "PolymarketAPIError",
     "PolymarketValidationError",
-    "PolymarketConfigurationError", 
+    "PolymarketConfigurationError",
     "PolymarketRateLimitError",
     "PolymarketAuthenticationError",
     "PolymarketNetworkError",
-    
+
     # Data models
     "Event",
-    "Market", 
+    "Market",
     "OrderBook",
-    
+
     # Metadata
     "__version__",
 ]

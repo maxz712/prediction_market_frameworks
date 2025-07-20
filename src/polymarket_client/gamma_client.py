@@ -1,17 +1,19 @@
 import datetime
 import warnings
-from typing import List, Dict, Any, Optional, Generator, Union
+from collections.abc import Generator
+from typing import Any
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from .models import Event, PaginatedResponse, PaginationInfo
 from .configs.polymarket_configs import PolymarketConfig
 from .exceptions import (
-    PolymarketAPIError, 
-    PolymarketNetworkError, 
-    PolymarketValidationError
+    PolymarketAPIError,
+    PolymarketNetworkError,
+    PolymarketValidationError,
 )
+from .models import Event, PaginatedResponse, PaginationInfo
 
 
 class GammaClient:
@@ -20,7 +22,7 @@ class GammaClient:
     Handles event and market data retrieval from the Gamma API service.
     Follows industry best practices for configuration management and error handling.
     """
-    
+
     def __init__(self, config: PolymarketConfig) -> None:
         """Initialize the Gamma client.
         
@@ -32,18 +34,18 @@ class GammaClient:
         self._session = self._init_session()
 
     @classmethod
-    def from_config(cls, config: PolymarketConfig) -> 'GammaClient':
+    def from_config(cls, config: PolymarketConfig) -> "GammaClient":
         """Create GammaClient from configuration object."""
         return cls(config)
-    
+
     @classmethod
-    def from_env(cls) -> 'GammaClient':
+    def from_env(cls) -> "GammaClient":
         """Create GammaClient from environment variables."""
         config = PolymarketConfig.from_env()
         return cls(config)
-    
+
     @classmethod
-    def from_url(cls, url: str, **config_kwargs) -> 'GammaClient':
+    def from_url(cls, url: str, **config_kwargs) -> "GammaClient":
         """Create GammaClient from URL (backward compatibility).
         
         Args:
@@ -57,7 +59,7 @@ class GammaClient:
             "info": config_kwargs.pop("info_url", "https://strapi-matic.polymarket.com"),
             "neg_risk": config_kwargs.pop("neg_risk_url", "https://neg-risk-api.polymarket.com")
         }
-        
+
         config = PolymarketConfig(
             endpoints=endpoints,
             api_key=config_kwargs.pop("api_key", ""),
@@ -71,7 +73,7 @@ class GammaClient:
     def _init_session(self) -> requests.Session:
         """Initialize session with configuration-based settings."""
         session = requests.Session()
-        
+
         # Configure retry strategy from config
         retry = Retry(
             total=self.config.max_retries,
@@ -82,51 +84,51 @@ class GammaClient:
         adapter = HTTPAdapter(max_retries=retry)
         session.mount("https://", adapter)
         session.mount("http://", adapter)
-        
+
         # Set timeout from config
         session.timeout = self.config.timeout
-        
+
         # Set standard headers
         session.headers.update({
-            'User-Agent': f'polymarket-sdk/{self.config.sdk_version}',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
+            "User-Agent": f"polymarket-sdk/{self.config.sdk_version}",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
         })
-        
+
         return session
 
     def get_events(
-        self, 
+        self,
         # Pagination parameters
-        limit: Optional[int] = None,
+        limit: int | None = None,
         offset: int = 0,
-        auto_paginate: Optional[bool] = None,
+        auto_paginate: bool | None = None,
         # Sorting parameters
-        order: Optional[str] = None,
+        order: str | None = None,
         ascending: bool = True,
         # ID and slug filters
-        event_id: Optional[Union[int, List[int]]] = None,
-        slug: Optional[Union[str, List[str]]] = None,
+        event_id: int | list[int] | None = None,
+        slug: str | list[str] | None = None,
         # Status filters
-        archived: Optional[bool] = None,
-        active: Optional[bool] = True,
-        closed: Optional[bool] = False,
+        archived: bool | None = None,
+        active: bool | None = True,
+        closed: bool | None = False,
         # Volume and liquidity filters
-        liquidity_min: Optional[float] = None,
-        liquidity_max: Optional[float] = None,
-        volume_min: Optional[float] = None,
-        volume_max: Optional[float] = None,
+        liquidity_min: float | None = None,
+        liquidity_max: float | None = None,
+        volume_min: float | None = None,
+        volume_max: float | None = None,
         # Date filters
-        start_date_min: Optional[str] = None,
-        start_date_max: Optional[str] = None,
-        end_date_min: Optional[str] = None,
-        end_date_max: Optional[str] = None,
+        start_date_min: str | None = None,
+        start_date_max: str | None = None,
+        end_date_min: str | None = None,
+        end_date_max: str | None = None,
         # Tag filters
-        tag: Optional[Union[str, List[str]]] = None,
-        tag_id: Optional[Union[int, List[int]]] = None,
-        related_tags: Optional[bool] = None,
-        tag_slug: Optional[Union[str, List[str]]] = None
-    ) -> List[Event]:
+        tag: str | list[str] | None = None,
+        tag_id: int | list[int] | None = None,
+        related_tags: bool | None = None,
+        tag_slug: str | list[str] | None = None
+    ) -> list[Event]:
         """Retrieves events from the Gamma API.
         
         Args:
@@ -166,10 +168,10 @@ class GammaClient:
             limit = self.config.default_page_size
         if auto_paginate is None:
             auto_paginate = self.config.enable_auto_pagination
-        
+
         # Validate and warn about large requests
         self._validate_and_warn_limit(limit, auto_paginate)
-        
+
         # For backward compatibility, return just the events
         paginated_response = self.get_events_paginated(
             limit=limit,
@@ -195,40 +197,40 @@ class GammaClient:
             related_tags=related_tags,
             tag_slug=tag_slug
         )
-        
+
         return paginated_response.data
-    
+
     def get_events_paginated(
-        self, 
+        self,
         # Pagination parameters
-        limit: Optional[int] = None,
+        limit: int | None = None,
         offset: int = 0,
-        auto_paginate: Optional[bool] = None,
+        auto_paginate: bool | None = None,
         # Sorting parameters
-        order: Optional[str] = None,
+        order: str | None = None,
         ascending: bool = True,
         # ID and slug filters
-        event_id: Optional[Union[int, List[int]]] = None,
-        slug: Optional[Union[str, List[str]]] = None,
+        event_id: int | list[int] | None = None,
+        slug: str | list[str] | None = None,
         # Status filters
-        archived: Optional[bool] = None,
-        active: Optional[bool] = True,
-        closed: Optional[bool] = False,
+        archived: bool | None = None,
+        active: bool | None = True,
+        closed: bool | None = False,
         # Volume and liquidity filters
-        liquidity_min: Optional[float] = None,
-        liquidity_max: Optional[float] = None,
-        volume_min: Optional[float] = None,
-        volume_max: Optional[float] = None,
+        liquidity_min: float | None = None,
+        liquidity_max: float | None = None,
+        volume_min: float | None = None,
+        volume_max: float | None = None,
         # Date filters
-        start_date_min: Optional[str] = None,
-        start_date_max: Optional[str] = None,
-        end_date_min: Optional[str] = None,
-        end_date_max: Optional[str] = None,
+        start_date_min: str | None = None,
+        start_date_max: str | None = None,
+        end_date_min: str | None = None,
+        end_date_max: str | None = None,
         # Tag filters
-        tag: Optional[Union[str, List[str]]] = None,
-        tag_id: Optional[Union[int, List[int]]] = None,
-        related_tags: Optional[bool] = None,
-        tag_slug: Optional[Union[str, List[str]]] = None
+        tag: str | list[str] | None = None,
+        tag_id: int | list[int] | None = None,
+        related_tags: bool | None = None,
+        tag_slug: str | list[str] | None = None
     ) -> PaginatedResponse[Event]:
         """Retrieves events from the Gamma API with pagination metadata.
         
@@ -269,43 +271,43 @@ class GammaClient:
             limit = self.config.default_page_size
         if auto_paginate is None:
             auto_paginate = self.config.enable_auto_pagination
-        
+
         # Validate and warn about large requests
         self._validate_and_warn_limit(limit, auto_paginate)
-        
+
         # Validate parameter combinations
         self._validate_parameters(order, ascending, tag_id, related_tags)
-        
+
         url = f"{self.base_url}/events"
-        
+
         # Determine page size for API requests
         page_size = min(limit, self.config.max_page_size) if not auto_paginate else self.config.default_page_size
-        
+
         # Build parameters dict with all possible filters
         params = {
             "limit": page_size,
             "offset": offset
         }
-        
+
         # Add optional parameters only if they are provided
         if order is not None:
             params["order"] = order
             params["ascending"] = str(ascending).lower()
-        
+
         # Handle ID parameters (can be single value or list)
         if event_id is not None:
             if isinstance(event_id, list):
                 params["id"] = [str(eid) for eid in event_id]
             else:
                 params["id"] = str(event_id)
-        
+
         # Handle slug parameters (can be single value or list)
         if slug is not None:
             if isinstance(slug, list):
                 params["slug"] = slug
             else:
                 params["slug"] = slug
-        
+
         # Status filters
         if archived is not None:
             params["archived"] = str(archived).lower()
@@ -313,7 +315,7 @@ class GammaClient:
             params["active"] = str(active).lower()
         if closed is not None:
             params["closed"] = str(closed).lower()
-        
+
         # Volume and liquidity filters
         if liquidity_min is not None:
             params["liquidity_min"] = str(liquidity_min)
@@ -323,7 +325,7 @@ class GammaClient:
             params["volume_min"] = str(volume_min)
         if volume_max is not None:
             params["volume_max"] = str(volume_max)
-        
+
         # Date filters
         if start_date_min is not None:
             params["start_date_min"] = start_date_min
@@ -335,79 +337,79 @@ class GammaClient:
             params["end_date_min"] = datetime.datetime.now().replace(microsecond=0).isoformat() + "Z"
         if end_date_max is not None:
             params["end_date_max"] = end_date_max
-        
+
         # Tag filters
         if tag is not None:
             if isinstance(tag, list):
                 params["tag"] = tag
             else:
                 params["tag"] = tag
-        
+
         # Handle tag_id parameters (can be single value or list)
         if tag_id is not None:
             if isinstance(tag_id, list):
                 params["tag_id"] = [str(tid) for tid in tag_id]
             else:
                 params["tag_id"] = str(tag_id)
-        
+
         if related_tags is not None:
             params["related_tags"] = str(related_tags).lower()
-        
+
         # Handle tag_slug parameters (can be single value or list)
         if tag_slug is not None:
             if isinstance(tag_slug, list):
                 params["tag_slug"] = tag_slug
             else:
                 params["tag_slug"] = tag_slug
-        
+
         all_events = []
         current_offset = offset
-        
+
         while True:
             # Create a copy of params for this request
             request_params = params.copy()
             request_params["offset"] = current_offset
-            
+
             # If we have a specific limit and we're close to it, adjust page size
             if not auto_paginate or (limit and len(all_events) + page_size > limit):
                 remaining = limit - len(all_events) if limit else page_size
                 if remaining <= 0:
                     break
                 request_params["limit"] = min(page_size, remaining)
-            
+
             try:
                 resp = self._session.get(url, params=request_params)
                 resp.raise_for_status()
                 events = resp.json()
             except requests.RequestException as e:
                 raise PolymarketNetworkError(
-                    f"Failed to fetch events: {e}", 
+                    f"Failed to fetch events: {e}",
                     original_error=e,
                     endpoint=url
                 )
             except requests.HTTPError as e:
                 raise PolymarketAPIError(
                     f"API request failed: {e}",
-                    status_code=resp.status_code if 'resp' in locals() else None,
+                    status_code=resp.status_code if "resp" in locals() else None,
                     endpoint=url
                 )
-            
+
             if not isinstance(events, list):
                 raise PolymarketAPIError(
                     f"Unexpected response format: expected list, got {type(events).__name__}",
                     response_data=events,
                     endpoint=url
                 )
-            
+
             all_events.extend(events)
-            
+
             # Stop if we got fewer events than requested, auto_paginate is disabled, or reached limit
             if len(events) < request_params["limit"] or not auto_paginate:
                 break
-            
+
             if limit and len(all_events) >= limit:
                 break
-                
+
             current_offset += request_params["limit"]
 
         # Truncate to exact limit if specified
@@ -416,7 +418,7 @@ class GammaClient:
 
         try:
             validated_events = [Event.model_validate(event) for event in all_events]
-            
+
             # Create pagination info
             pagination_info = PaginationInfo.from_offset(
                 offset=offset,
@@ -424,7 +426,7 @@ class GammaClient:
                 total_returned=len(validated_events),
                 requested_limit=request_params.get("limit", page_size)
             )
-            
+
             return PaginatedResponse(
                 data=validated_events,
                 pagination=pagination_info
@@ -434,37 +436,37 @@ class GammaClient:
                 f"Failed to validate event data: {e}",
                 details={"raw_events": all_events}
             )
-    
+
     def iter_events(
-        self, 
+        self,
         # Pagination parameters
-        page_size: Optional[int] = None,
+        page_size: int | None = None,
         offset: int = 0,
         # Sorting parameters
-        order: Optional[str] = None,
+        order: str | None = None,
         ascending: bool = True,
         # ID and slug filters
-        event_id: Optional[Union[int, List[int]]] = None,
-        slug: Optional[Union[str, List[str]]] = None,
+        event_id: int | list[int] | None = None,
+        slug: str | list[str] | None = None,
         # Status filters
-        archived: Optional[bool] = None,
-        active: Optional[bool] = True,
-        closed: Optional[bool] = False,
+        archived: bool | None = None,
+        active: bool | None = True,
+        closed: bool | None = False,
         # Volume and liquidity filters
-        liquidity_min: Optional[float] = None,
-        liquidity_max: Optional[float] = None,
-        volume_min: Optional[float] = None,
-        volume_max: Optional[float] = None,
+        liquidity_min: float | None = None,
+        liquidity_max: float | None = None,
+        volume_min: float | None = None,
+        volume_max: float | None = None,
         # Date filters
-        start_date_min: Optional[str] = None,
-        start_date_max: Optional[str] = None,
-        end_date_min: Optional[str] = None,
-        end_date_max: Optional[str] = None,
+        start_date_min: str | None = None,
+        start_date_max: str | None = None,
+        end_date_min: str | None = None,
+        end_date_max: str | None = None,
         # Tag filters
-        tag: Optional[Union[str, List[str]]] = None,
-        tag_id: Optional[Union[int, List[int]]] = None,
-        related_tags: Optional[bool] = None,
-        tag_slug: Optional[Union[str, List[str]]] = None
+        tag: str | list[str] | None = None,
+        tag_id: int | list[int] | None = None,
+        related_tags: bool | None = None,
+        tag_slug: str | list[str] | None = None
     ) -> Generator[Event, None, None]:
         """Generator that yields events one page at a time.
         
@@ -503,7 +505,7 @@ class GammaClient:
         """
         if page_size is None:
             page_size = self.config.default_page_size
-        
+
         # Validate page size
         if page_size > self.config.max_page_size:
             raise PolymarketValidationError(
@@ -511,9 +513,9 @@ class GammaClient:
                 field="page_size",
                 value=page_size
             )
-        
+
         current_offset = offset
-        
+
         while True:
             # Get one page of events
             page_response = self.get_events_paginated(
@@ -540,17 +542,17 @@ class GammaClient:
                 related_tags=related_tags,
                 tag_slug=tag_slug
             )
-            
+
             # Yield each event
             for event in page_response.data:
                 yield event
-            
+
             # Stop if we got fewer events than requested (no more pages)
             if not page_response.pagination.has_next:
                 break
-                
+
             current_offset += page_size
-    
+
     def _validate_and_warn_limit(self, limit: int, auto_paginate: bool) -> None:
         """Validate limit parameters and warn about large requests."""
         if limit > self.config.max_page_size:
@@ -559,7 +561,7 @@ class GammaClient:
                 field="limit",
                 value=limit
             )
-        
+
         # Warn about potentially large requests
         if self.config.warn_large_requests:
             if auto_paginate and limit > self.config.default_page_size * 10:
@@ -576,13 +578,13 @@ class GammaClient:
                     UserWarning,
                     stacklevel=3
                 )
-    
+
     def _validate_parameters(
-        self, 
-        order: Optional[str], 
-        ascending: bool, 
-        tag_id: Optional[Union[int, List[int]]], 
-        related_tags: Optional[bool]
+        self,
+        order: str | None,
+        ascending: bool,
+        tag_id: int | list[int] | None,
+        related_tags: bool | None
     ) -> None:
         """Validate parameter combinations and requirements."""
         # ascending parameter requires order parameter
@@ -592,7 +594,7 @@ class GammaClient:
                 field="ascending",
                 value=ascending
             )
-        
+
         # related_tags parameter requires tag_id parameter
         if related_tags is not None and tag_id is None:
             raise PolymarketValidationError(
@@ -601,7 +603,7 @@ class GammaClient:
                 value=related_tags
             )
 
-    def get_markets(self, market_id: Optional[str] = None) -> Dict[str, Any]:
+    def get_markets(self, market_id: str | None = None) -> dict[str, Any]:
         """Retrieve market data from Gamma API.
         
         Args:
@@ -615,7 +617,7 @@ class GammaClient:
         """
         raise NotImplementedError("get_markets endpoint not yet implemented")
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Check if the Gamma API is accessible.
         
         Returns:

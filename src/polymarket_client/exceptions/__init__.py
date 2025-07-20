@@ -31,43 +31,42 @@ Exception Hierarchy:
 """
 
 # Base exceptions
-from .base import (
-    PolymarketError,
-    PolymarketConfigurationError,
-)
-
 # API-related exceptions
 from .api_errors import (
     PolymarketAPIError,
     PolymarketAuthenticationError,
     PolymarketAuthorizationError,
-    PolymarketRateLimitError,
-    PolymarketNotFoundError,
-    PolymarketServerError,
-    PolymarketClientError,
     PolymarketBadRequestError,
+    PolymarketClientError,
     PolymarketConflictError,
+    PolymarketNotFoundError,
+    PolymarketRateLimitError,
+    PolymarketServerError,
 )
-
-# Validation exceptions
-from .validation_errors import (
-    PolymarketValidationError,
-    PolymarketFieldValidationError,
-    PolymarketTypeValidationError,
-    PolymarketRangeValidationError,
-    PolymarketRequiredFieldError,
-    PolymarketFormatValidationError,
-    PolymarketBusinessRuleError,
+from .base import (
+    PolymarketConfigurationError,
+    PolymarketError,
 )
 
 # Network exceptions
 from .network_errors import (
-    PolymarketNetworkError,
     PolymarketConnectionError,
-    PolymarketTimeoutError,
-    PolymarketSSLError,
-    PolymarketProxyError,
     PolymarketDNSError,
+    PolymarketNetworkError,
+    PolymarketProxyError,
+    PolymarketSSLError,
+    PolymarketTimeoutError,
+)
+
+# Validation exceptions
+from .validation_errors import (
+    PolymarketBusinessRuleError,
+    PolymarketFieldValidationError,
+    PolymarketFormatValidationError,
+    PolymarketRangeValidationError,
+    PolymarketRequiredFieldError,
+    PolymarketTypeValidationError,
+    PolymarketValidationError,
 )
 
 # Export all exceptions
@@ -75,7 +74,7 @@ __all__ = [
     # Base exceptions
     "PolymarketError",
     "PolymarketConfigurationError",
-    
+
     # API exceptions
     "PolymarketAPIError",
     "PolymarketAuthenticationError",
@@ -86,7 +85,7 @@ __all__ = [
     "PolymarketClientError",
     "PolymarketBadRequestError",
     "PolymarketConflictError",
-    
+
     # Validation exceptions
     "PolymarketValidationError",
     "PolymarketFieldValidationError",
@@ -95,7 +94,7 @@ __all__ = [
     "PolymarketRequiredFieldError",
     "PolymarketFormatValidationError",
     "PolymarketBusinessRuleError",
-    
+
     # Network exceptions
     "PolymarketNetworkError",
     "PolymarketConnectionError",
