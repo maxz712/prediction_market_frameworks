@@ -109,9 +109,6 @@ class ClobClient:
             raw_asks=summary.asks
         )
 
-    def get_orders(self, **kwargs) -> dict[str, Any]:
-        """Get orders."""
-        return self._py_client.get_orders(**kwargs)
 
     def post_order(self, order_args: dict[str, Any]) -> dict[str, Any]:
         """Post an order using OrderArgs."""
@@ -317,9 +314,9 @@ class ClobClient:
             OrderList: A custom data model containing the list of open orders
         """
         if market:
-            raw_response = self.get_orders(market=market)
+            raw_response = self._py_client.get_orders(market=market)
         else:
-            raw_response = self.get_orders()
+            raw_response = self._py_client.get_orders()
 
         return OrderList.from_raw_response(raw_response)
 
