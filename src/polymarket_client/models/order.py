@@ -14,7 +14,6 @@ class OrderType(str, Enum):
     FOK = "FOK"  # Fill or Kill
     FAK = "FAK"  # Fill and Kill
     GTD = "GTD"  # Good Till Date
-    MARKET = "MARKET"
 
 
 class OrderStatus(str, Enum):

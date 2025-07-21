@@ -13,6 +13,7 @@ from urllib3.util.retry import Retry
 
 from .configs.polymarket_configs import PolymarketConfig
 from .models import LimitOrderRequest, Market, OrderBook, OrderList, OrderResponse
+from .models.order import OrderType as PMOrderType
 
 
 class ClobClient:
@@ -215,92 +216,45 @@ class ClobClient:
         order = self._py_client.create_market_order(market_order_args)
         return self._py_client.post_order(order)
 
-    def submit_limit_order_gtc(self, request: LimitOrderRequest) -> OrderResponse:
+    def submit_limit_order(self, request: LimitOrderRequest) -> OrderResponse:
         """
-        Submit a limit order that is good till cancellation (GTC).
-        Order remains active until filled or manually cancelled.
+        Submit a limit order with specified order type.
         
         Args:
-            request: LimitOrderRequest containing order details
+            request: LimitOrderRequest containing order details including order_type
             
         Returns:
             OrderResponse: Response with order submission details
         """
-        order_args = OrderArgs(
-            token_id=request.token_id,
-            price=request.price,
-            size=request.size,
-            side=request.side.value.upper()
-        )
-        order = self._py_client.create_order(order_args)
-        raw_response = self._py_client.post_order(order, OrderType.GTC)
-        return OrderResponse.from_raw_response(raw_response)
-
-    def submit_limit_order_fok(self, request: LimitOrderRequest) -> OrderResponse:
-        """
-        Submit a Fill or Kill (FOK) limit order.
-        Order must be filled completely and immediately or be rejected entirely.
-        
-        Args:
-            request: LimitOrderRequest containing order details
-            
-        Returns:
-            OrderResponse: Response with order submission details
-        """
-        order_args = OrderArgs(
-            token_id=request.token_id,
-            price=request.price,
-            size=request.size,
-            side=request.side.value.upper()
-        )
-        order = self._py_client.create_order(order_args)
-        raw_response = self._py_client.post_order(order, OrderType.FOK)
-        return OrderResponse.from_raw_response(raw_response)
-
-    def submit_limit_order_fak(self, request: LimitOrderRequest) -> OrderResponse:
-        """
-        Submit a Fill and Kill (FAK) limit order.
-        Order fills whatever quantity possible immediately, then cancels the rest.
-        
-        Args:
-            request: LimitOrderRequest containing order details
-            
-        Returns:
-            OrderResponse: Response with order submission details
-        """
-        order_args = OrderArgs(
-            token_id=request.token_id,
-            price=request.price,
-            size=request.size,
-            side=request.side.value.upper()
-        )
-        order = self._py_client.create_order(order_args)
-        raw_response = self._py_client.post_order(order, OrderType.FAK)
-        return OrderResponse.from_raw_response(raw_response)
-
-    def submit_limit_order_gtd(self, request: LimitOrderRequest) -> OrderResponse:
-        """
-        Submit a Good Till Date (GTD) limit order.
-        Order remains active until filled, cancelled, or expires at the specified time.
-        
-        Args:
-            request: LimitOrderRequest containing order details (expires_at must be set)
-            
-        Returns:
-            OrderResponse: Response with order submission details
-        """
-        if request.expires_at is None:
+        # Validate GTD orders have expiration
+        if request.order_type == PMOrderType.GTD and request.expires_at is None:
             raise ValueError("expires_at must be set for GTD orders")
 
-        order_args = OrderArgs(
-            token_id=request.token_id,
-            price=request.price,
-            size=request.size,
-            side=request.side.value.upper(),
-            expiration=request.expires_at
-        )
+        # Build order args based on order type
+        order_args_dict = {
+            "token_id": request.token_id,
+            "price": request.price,
+            "size": request.size,
+            "side": request.side.value.upper()
+        }
+        
+        # Add expiration for GTD orders
+        if request.order_type == PMOrderType.GTD:
+            order_args_dict["expiration"] = request.expires_at
+            
+        order_args = OrderArgs(**order_args_dict)
         order = self._py_client.create_order(order_args)
-        raw_response = self._py_client.post_order(order, OrderType.GTD)
+        
+        # Map our OrderType enum to py_clob_client's OrderType
+        order_type_map = {
+            PMOrderType.GTC: OrderType.GTC,
+            PMOrderType.FOK: OrderType.FOK,
+            PMOrderType.FAK: OrderType.FAK,
+            PMOrderType.GTD: OrderType.GTD
+        }
+        
+        py_order_type = order_type_map[request.order_type]
+        raw_response = self._py_client.post_order(order, py_order_type)
         return OrderResponse.from_raw_response(raw_response)
 
     def get_open_orders(self, market: str | None = None) -> OrderList:

@@ -13,6 +13,7 @@ from .models import (
     OrderBook,
     OrderList,
     OrderResponse,
+    OrderType,
     PaginatedResponse,
 )
 
@@ -321,21 +322,17 @@ class PolymarketClient:
         """Cancel all orders."""
         return self.clob_client.cancel_all()
 
-    def submit_limit_order_gtc(self, request: LimitOrderRequest) -> OrderResponse:
-        """Submit a limit order that is good till cancellation (GTC)."""
-        return self.clob_client.submit_limit_order_gtc(request)
-
-    def submit_limit_order_fok(self, request: LimitOrderRequest) -> OrderResponse:
-        """Submit a Fill or Kill (FOK) limit order."""
-        return self.clob_client.submit_limit_order_fok(request)
-
-    def submit_limit_order_fak(self, request: LimitOrderRequest) -> OrderResponse:
-        """Submit a Fill and Kill (FAK) limit order."""
-        return self.clob_client.submit_limit_order_fak(request)
-
-    def submit_limit_order_gtd(self, request: LimitOrderRequest) -> OrderResponse:
-        """Submit a Good Till Date (GTD) limit order."""
-        return self.clob_client.submit_limit_order_gtd(request)
+    def submit_limit_order(self, request: LimitOrderRequest) -> OrderResponse:
+        """
+        Submit a limit order with specified order type.
+        
+        Args:
+            request: LimitOrderRequest containing order details including order_type
+            
+        Returns:
+            OrderResponse: Response with order submission details
+        """
+        return self.clob_client.submit_limit_order(request)
 
     def get_open_orders(self, market: str | None = None) -> OrderList:
         """Get current open orders for the authenticated user.
