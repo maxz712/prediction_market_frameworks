@@ -6,6 +6,7 @@ from .configs.polymarket_configs import PolymarketConfig
 from .exceptions import PolymarketConfigurationError
 from .gamma_client import _GammaClient
 from .models import (
+    CancelResponse,
     Event,
     EventList,
     LimitOrderRequest,
@@ -13,7 +14,6 @@ from .models import (
     OrderBook,
     OrderList,
     OrderResponse,
-    OrderType,
     PaginatedResponse,
     TradeHistory,
 )
@@ -306,21 +306,39 @@ class PolymarketClient:
         """Get order book for a token."""
         return self.clob_client.get_order_book(token_id)
 
-    def get_market_trades_history(self, token_id: str, limit: int = 100,
+    def get_user_market_trades_history(self, token_id: str, limit: int = 100,
                                  offset: int = 0) -> TradeHistory:
         """Get comprehensive trade history."""
-        return self.clob_client.get_market_trades_history(token_id, limit, offset)
+        return self.clob_client.get_user_market_trades_history(token_id, limit, offset)
 
-    def cancel_order(self, order_id: str) -> dict[str, Any]:
-        """Cancel an order."""
+    def cancel_order(self, order_id: str) -> CancelResponse:
+        """Cancel an order.
+        
+        Args:
+            order_id: The order ID to cancel
+            
+        Returns:
+            CancelResponse: Response with cancellation results
+        """
         return self.clob_client.cancel_order(order_id)
 
-    def cancel_orders(self, order_ids: list) -> dict[str, Any]:
-        """Cancel multiple orders."""
+    def cancel_orders(self, order_ids: list[str]) -> CancelResponse:
+        """Cancel multiple orders.
+        
+        Args:
+            order_ids: List of order IDs to cancel
+            
+        Returns:
+            CancelResponse: Response with cancellation results
+        """
         return self.clob_client.cancel_orders(order_ids)
 
-    def cancel_all_orders(self) -> dict[str, Any]:
-        """Cancel all orders."""
+    def cancel_all_orders(self) -> CancelResponse:
+        """Cancel all orders.
+        
+        Returns:
+            CancelResponse: Response with cancellation results
+        """
         return self.clob_client.cancel_all()
 
     def submit_limit_order(self, request: LimitOrderRequest) -> OrderResponse:

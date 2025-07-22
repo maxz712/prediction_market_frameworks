@@ -95,7 +95,7 @@ class TestPolymarketClient:
         expected_methods = [
             "get_events", "get_active_events", "get_market", "get_markets",
             "get_order_book", "get_order_book_raw", "get_market_depth",
-            "get_trades", "get_market_trades_history", "get_orders",
+            "get_trades", "get_user_market_trades_history", "get_orders",
             "post_order", "cancel_order", "cancel_orders", "cancel_all_orders",
             "submit_market_order", "submit_limit_order_gtc", "get_open_orders",
             "get_current_user_position", "get_market_statistics",

@@ -12,7 +12,15 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .configs.polymarket_configs import PolymarketConfig
-from .models import LimitOrderRequest, Market, OrderBook, OrderList, OrderResponse, TradeHistory
+from .models import (
+    CancelResponse,
+    LimitOrderRequest,
+    Market,
+    OrderBook,
+    OrderList,
+    OrderResponse,
+    TradeHistory,
+)
 from .models.order import OrderType as PMOrderType
 
 
@@ -122,20 +130,41 @@ class _ClobClient:
         )
         return self._py_client.create_and_post_order(order_args_obj)
 
-    def cancel_order(self, order_id: str) -> dict[str, Any]:
-        """Cancel an order."""
-        return self._py_client.cancel(order_id)
+    def cancel_order(self, order_id: str) -> CancelResponse:
+        """Cancel an order.
+        
+        Args:
+            order_id: The order ID to cancel
+            
+        Returns:
+            CancelResponse: Response with cancellation results
+        """
+        raw_response = self._py_client.cancel(order_id)
+        return CancelResponse.from_raw_response(raw_response)
 
-    def cancel_orders(self, order_ids: list[str]) -> dict[str, Any]:
-        """Cancel multiple orders."""
-        return self._py_client.cancel_orders(order_ids)
+    def cancel_orders(self, order_ids: list[str]) -> CancelResponse:
+        """Cancel multiple orders.
+        
+        Args:
+            order_ids: List of order IDs to cancel
+            
+        Returns:
+            CancelResponse: Response with cancellation results
+        """
+        raw_response = self._py_client.cancel_orders(order_ids)
+        return CancelResponse.from_raw_response(raw_response)
 
-    def cancel_all(self) -> dict[str, Any]:
-        """Cancel all orders."""
-        return self._py_client.cancel_all()
+    def cancel_all(self) -> CancelResponse:
+        """Cancel all orders.
+        
+        Returns:
+            CancelResponse: Response with cancellation results
+        """
+        raw_response = self._py_client.cancel_all()
+        return CancelResponse.from_raw_response(raw_response)
 
     # Extended functionality - additional CLOB API endpoints
-    def get_market_trades_history(self, token_id: str, limit: int = 100,
+    def get_user_market_trades_history(self, token_id: str, limit: int = 100,
                                  offset: int = 0) -> TradeHistory:
         """
         Get comprehensive trade history for a market.
@@ -156,24 +185,23 @@ class _ClobClient:
             # Use py_clob_client's get_trades method which returns user's trade history
             # Note: py_clob_client doesn't have market-specific filtering in get_trades
             raw_trades = self._py_client.get_trades()
-            
+
             # If we have trades and a token_id filter, filter client-side
             if token_id and isinstance(raw_trades, list):
                 # Filter trades by token_id if provided
-                filtered_trades = [trade for trade in raw_trades if trade.get('market') == token_id]
+                filtered_trades = [trade for trade in raw_trades if trade.get("market") == token_id]
                 raw_trades = filtered_trades
-            
+
             # Apply limit if specified
             if isinstance(raw_trades, list) and limit:
                 raw_trades = raw_trades[:limit]
-            
+
             # Convert to our custom model
             if isinstance(raw_trades, list):
                 return TradeHistory.from_raw_trades(raw_trades)
-            else:
-                # In case py_clob_client returns a different format
-                return TradeHistory.from_raw_trades([])
-                
+            # In case py_clob_client returns a different format
+            return TradeHistory.from_raw_trades([])
+
         except Exception as e:
             # Fallback: return empty trade history if there's an error
             print(f"Warning: Could not fetch trade history: {e}")
@@ -264,14 +292,14 @@ class _ClobClient:
             "size": request.size,
             "side": request.side.value.upper()
         }
-        
+
         # Add expiration for GTD orders
         if request.order_type == PMOrderType.GTD:
             order_args_dict["expiration"] = request.expires_at
-            
+
         order_args = OrderArgs(**order_args_dict)
         order = self._py_client.create_order(order_args)
-        
+
         # Map our OrderType enum to py_clob_client's OrderType
         order_type_map = {
             PMOrderType.GTC: OrderType.GTC,
@@ -279,7 +307,7 @@ class _ClobClient:
             PMOrderType.FAK: OrderType.FAK,
             PMOrderType.GTD: OrderType.GTD
         }
-        
+
         py_order_type = order_type_map[request.order_type]
         raw_response = self._py_client.post_order(order, py_order_type)
         return OrderResponse.from_raw_response(raw_response)
