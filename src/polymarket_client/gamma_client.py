@@ -35,12 +35,28 @@ class _GammaClient:
 
     @classmethod
     def from_config(cls, config: PolymarketConfig) -> "_GammaClient":
-        """Create _GammaClient from configuration object."""
+        """Create _GammaClient from configuration object.
+        
+        Args:
+            config: PolymarketConfig instance with endpoints and settings
+            
+        Returns:
+            _GammaClient: New gamma client instance
+        """
         return cls(config)
 
     @classmethod
     def from_env(cls) -> "_GammaClient":
-        """Create _GammaClient from environment variables."""
+        """Create _GammaClient from environment variables.
+        
+        Loads configuration from environment variables and creates a new client.
+        
+        Returns:
+            _GammaClient: New gamma client instance
+            
+        Raises:
+            PolymarketConfigurationError: If required environment variables are missing
+        """
         config = PolymarketConfig.from_env()
         return cls(config)
 
@@ -71,7 +87,13 @@ class _GammaClient:
         return cls(config)
 
     def _init_session(self) -> requests.Session:
-        """Initialize session with configuration-based settings."""
+        """Initialize session with configuration-based settings.
+        
+        Sets up retry strategy, timeouts, and standard headers for HTTP requests.
+        
+        Returns:
+            requests.Session: Configured session with retry strategy
+        """
         session = requests.Session()
 
         # Configure retry strategy from config
@@ -560,7 +582,15 @@ class _GammaClient:
             current_offset += page_size
 
     def _validate_and_warn_limit(self, limit: int, auto_paginate: bool) -> None:
-        """Validate limit parameters and warn about large requests."""
+        """Validate limit parameters and warn about large requests.
+        
+        Args:
+            limit: Maximum number of events requested
+            auto_paginate: Whether auto pagination is enabled
+            
+        Raises:
+            PolymarketValidationError: If limit exceeds maximum allowed
+        """
         if limit > self.config.max_page_size:
             raise PolymarketValidationError(
                 f"Limit {limit} exceeds maximum allowed {self.config.max_page_size}",
@@ -592,7 +622,17 @@ class _GammaClient:
         tag_id: int | list[int] | None,
         related_tags: bool | None
     ) -> None:
-        """Validate parameter combinations and requirements."""
+        """Validate parameter combinations and requirements.
+        
+        Args:
+            order: Sort key parameter
+            ascending: Sort direction parameter
+            tag_id: Tag ID filter parameter
+            related_tags: Related tags flag parameter
+            
+        Raises:
+            PolymarketValidationError: If parameter combinations are invalid
+        """
         # ascending parameter requires order parameter
         if order is None and ascending is not True:
             raise PolymarketValidationError(

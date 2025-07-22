@@ -163,7 +163,52 @@ class PolymarketClient:
         related_tags: bool | None = None,
         tag_slug: str | list[str] | None = None
     ) -> PaginatedResponse[Event]:
-        """Get events from Gamma API with pagination metadata and comprehensive filtering options."""
+        """Get events from Gamma API with pagination metadata and comprehensive filtering options.
+        
+        This method returns the same data as get_events() but wrapped in a PaginatedResponse
+        that includes metadata about pagination such as total count, current offset, and
+        whether there are more pages available.
+        
+        Args:
+            limit: Maximum number of events to return total (uses config default if None)
+            offset: Offset for pagination
+            auto_paginate: Whether to automatically paginate through all results (uses config default if None)
+            order: Key to sort by
+            ascending: Sort direction, defaults to True (requires order parameter)
+            event_id: ID of a single event to query, can be int or list of ints
+            slug: Slug of a single event to query, can be string or list of strings
+            archived: Filter by archived status
+            active: Filter for active events
+            closed: Filter for closed events
+            liquidity_min: Filter by minimum liquidity
+            liquidity_max: Filter by maximum liquidity
+            volume_min: Filter by minimum volume
+            volume_max: Filter by maximum volume
+            start_date_min: Filter by minimum start date (ISO format)
+            start_date_max: Filter by maximum start date (ISO format)
+            end_date_min: Minimum end date filter (ISO format)
+            end_date_max: Filter by maximum end date (ISO format)
+            tag: Filter by tag labels, can be string or list of strings
+            tag_id: Filter by tag ID, can be int or list of ints
+            related_tags: Include events with related tags (requires tag_id parameter)
+            tag_slug: Filter by tag slug, can be string or list of strings
+            
+        Returns:
+            PaginatedResponse[Event]: Paginated response containing events and metadata
+            
+        Examples:
+            # Get first 10 events with pagination metadata
+            response = client.get_events_paginated(limit=10)
+            print(f"Total events: {response.meta.total}")
+            print(f"Current page events: {len(response.data)}")
+            
+            # Check if more pages are available
+            if response.meta.has_next:
+                next_response = client.get_events_paginated(
+                    limit=10, 
+                    offset=response.meta.next_offset
+                )
+        """
         return self.gamma_client.get_events_paginated(
             limit=limit,
             offset=offset,
@@ -220,7 +265,53 @@ class PolymarketClient:
         related_tags: bool | None = None,
         tag_slug: str | list[str] | None = None
     ) -> Generator[Event, None, None]:
-        """Iterator for events that yields events one page at a time (memory efficient)."""
+        """Iterator for events that yields events one page at a time (memory efficient).
+        
+        This method is useful when you need to process a large number of events without
+        loading them all into memory at once. It automatically handles pagination and
+        yields individual Event objects as they are retrieved.
+        
+        Args:
+            page_size: Number of events to fetch per API request (uses config default if None)
+            offset: Starting offset for pagination
+            order: Key to sort by
+            ascending: Sort direction, defaults to True (requires order parameter)
+            event_id: ID of a single event to query, can be int or list of ints
+            slug: Slug of a single event to query, can be string or list of strings
+            archived: Filter by archived status
+            active: Filter for active events
+            closed: Filter for closed events
+            liquidity_min: Filter by minimum liquidity
+            liquidity_max: Filter by maximum liquidity
+            volume_min: Filter by minimum volume
+            volume_max: Filter by maximum volume
+            start_date_min: Filter by minimum start date (ISO format)
+            start_date_max: Filter by maximum start date (ISO format)
+            end_date_min: Minimum end date filter (ISO format)
+            end_date_max: Filter by maximum end date (ISO format)
+            tag: Filter by tag labels, can be string or list of strings
+            tag_id: Filter by tag ID, can be int or list of ints
+            related_tags: Include events with related tags (requires tag_id parameter)
+            tag_slug: Filter by tag slug, can be string or list of strings
+            
+        Yields:
+            Event: Individual Event objects one at a time
+            
+        Examples:
+            # Process all active events one by one
+            for event in client.iter_events(active=True):
+                print(f"Processing event: {event.title}")
+                # Process event without loading all events into memory
+                
+            # Process events with specific filters
+            for event in client.iter_events(
+                active=True,
+                liquidity_min=1000,
+                page_size=50  # Fetch 50 events per API call
+            ):
+                if event.volume > 10000:
+                    print(f"High volume event: {event.title}")
+        """
         return self.gamma_client.iter_events(
             page_size=page_size,
             offset=offset,
@@ -246,7 +337,27 @@ class PolymarketClient:
         )
 
     def get_active_events(self, limit: int = 100) -> EventList:
-        """Get currently active events."""
+        """Get currently active events.
+        
+        This is a convenience method that filters for events that are both active
+        and not closed. It's equivalent to calling get_events(active=True, closed=False).
+        
+        Args:
+            limit: Maximum number of active events to return (default 100)
+            
+        Returns:
+            EventList: A list of active Event objects
+            
+        Examples:
+            # Get the first 50 active events
+            active_events = client.get_active_events(limit=50)
+            
+            # Get all active events (up to default limit)
+            all_active = client.get_active_events()
+            
+            for event in active_events:
+                print(f"Active event: {event.title}")
+        """
         return self.get_events(active=True, closed=False, limit=limit)
 
     def get_events_by_slug(
@@ -305,12 +416,63 @@ class PolymarketClient:
 
     # Order book and trading methods (CLOB API)
     def get_order_book(self, token_id: str) -> OrderBook:
-        """Get order book for a token."""
+        """Get order book for a token.
+        
+        Retrieves the current order book showing all active buy and sell orders
+        for a specific token/market. The order book provides price and quantity
+        information for market making and trading decisions.
+        
+        Args:
+            token_id: The CLOB token ID to get the order book for
+            
+        Returns:
+            OrderBook: Order book data containing bids and asks
+            
+        Examples:
+            # Get order book for a specific token
+            order_book = client.get_order_book("0x1234...")
+            
+            # Analyze the spread
+            best_bid = order_book.bids[0] if order_book.bids else None
+            best_ask = order_book.asks[0] if order_book.asks else None
+            
+            if best_bid and best_ask:
+                spread = float(best_ask.price) - float(best_bid.price)
+                print(f"Current spread: {spread}")
+        """
         return self.clob_client.get_order_book(token_id)
 
     def get_user_market_trades_history(self, token_id: str, limit: int = 100,
                                  offset: int = 0) -> TradeHistory:
-        """Get comprehensive trade history."""
+        """Get comprehensive trade history for a specific token/market.
+        
+        Retrieves the trade history for the authenticated user in a specific market.
+        This includes all completed trades with details like price, quantity, timestamp,
+        and trade direction.
+        
+        Args:
+            token_id: The CLOB token ID to get trade history for
+            limit: Maximum number of trades to return (default 100)
+            offset: Pagination offset for retrieving more trades (default 0)
+            
+        Returns:
+            TradeHistory: Trade history data containing list of trades
+            
+        Examples:
+            # Get recent trades for a token
+            trades = client.get_user_market_trades_history("0x1234...", limit=50)
+            
+            # Get next page of trades
+            more_trades = client.get_user_market_trades_history(
+                token_id="0x1234...",
+                limit=50,
+                offset=50
+            )
+            
+            # Calculate total volume
+            total_volume = sum(float(trade.size) for trade in trades.history)
+            print(f"Total trade volume: {total_volume}")
+        """
         return self.clob_client.get_user_market_trades_history(token_id, limit, offset)
 
     def get_prices_history(
@@ -570,10 +732,36 @@ class PolymarketClient:
     # Access to underlying src for advanced usage
     @property
     def gamma(self) -> _GammaClient:
-        """Direct access to Gamma client."""
+        """Direct access to Gamma client for advanced usage.
+        
+        Provides direct access to the underlying Gamma API client for operations
+        not exposed through the unified interface. Use this for advanced functionality
+        or when you need to access Gamma-specific methods.
+        
+        Returns:
+            _GammaClient: The underlying Gamma API client instance
+            
+        Examples:
+            # Access gamma-specific methods
+            gamma_client = client.gamma
+            # Use gamma client methods directly
+        """
         return self.gamma_client
 
     @property
     def clob(self) -> _ClobClient:
-        """Direct access to CLOB client."""
+        """Direct access to CLOB client for advanced usage.
+        
+        Provides direct access to the underlying CLOB API client for trading
+        operations not exposed through the unified interface. Use this for
+        advanced trading functionality or when you need CLOB-specific methods.
+        
+        Returns:
+            _ClobClient: The underlying CLOB API client instance
+            
+        Examples:
+            # Access CLOB-specific methods
+            clob_client = client.clob
+            # Use CLOB client methods directly
+        """
         return self.clob_client
