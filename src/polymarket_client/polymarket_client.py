@@ -1,10 +1,10 @@
 from collections.abc import Generator
 from typing import Any
 
-from .clob_client import ClobClient
+from .clob_client import _ClobClient
 from .configs.polymarket_configs import PolymarketConfig
 from .exceptions import PolymarketConfigurationError
-from .gamma_client import GammaClient
+from .gamma_client import _GammaClient
 from .models import (
     Event,
     EventList,
@@ -41,8 +41,8 @@ class PolymarketClient:
                 ) from e
 
         self.config = config
-        self.gamma_client = GammaClient(config)
-        self.clob_client = ClobClient(config)
+        self.gamma_client = _GammaClient(config)
+        self.clob_client = _ClobClient(config)
 
     # Event-related methods (Gamma API)
     def get_events(
@@ -365,11 +365,11 @@ class PolymarketClient:
 
     # Access to underlying src for advanced usage
     @property
-    def gamma(self) -> GammaClient:
+    def gamma(self) -> _GammaClient:
         """Direct access to Gamma client."""
         return self.gamma_client
 
     @property
-    def clob(self) -> ClobClient:
+    def clob(self) -> _ClobClient:
         """Direct access to CLOB client."""
         return self.clob_client

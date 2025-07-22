@@ -10,7 +10,7 @@ from src.polymarket_client.exceptions import (
     PolymarketNetworkError,
     PolymarketValidationError,
 )
-from src.polymarket_client.gamma_client import GammaClient
+from src.polymarket_client.gamma_client import _GammaClient as GammaClient
 
 
 class TestGammaClient:

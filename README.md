@@ -77,6 +77,10 @@ config = PolymarketConfig(
 )
 
 client = PolymarketClient(config)
+
+# Advanced users can access underlying clients directly
+gamma_client = client.gamma  # Access to Gamma API
+clob_client = client.clob    # Access to CLOB API
 ```
 
 ## Examples
@@ -151,8 +155,6 @@ except PolymarketError as e:
 
 - **`PolymarketClient`** - Main unified client
 - **`PolymarketConfig`** - Configuration management
-- **`GammaClient`** - Direct access to Gamma API (events/markets)
-- **`ClobClient`** - Direct access to CLOB API (trading)
 
 ### Exception Hierarchy
 

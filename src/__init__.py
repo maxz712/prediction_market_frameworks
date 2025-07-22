@@ -18,8 +18,6 @@ For more advanced usage:
 # Import main client classes
 # Import commonly used exceptions
 from .polymarket_client import (
-    ClobClient,
-    GammaClient,
     PolymarketAPIError,
     PolymarketAuthenticationError,
     PolymarketClient,
@@ -48,8 +46,6 @@ __all__ = [
     # Main client classes
     "PolymarketClient",
     "PolymarketConfig",
-    "ClobClient",
-    "GammaClient",
 
     # Core exceptions users need to handle
     "PolymarketError",

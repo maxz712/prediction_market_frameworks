@@ -1,4 +1,3 @@
-from .clob_client import ClobClient
 from .configs.polymarket_configs import PolymarketConfig
 from .exceptions import (
     PolymarketAPIError,
@@ -26,15 +25,12 @@ from .exceptions import (
     PolymarketTypeValidationError,
     PolymarketValidationError,
 )
-from .gamma_client import GammaClient
 from .polymarket_client import PolymarketClient
 
 __all__ = [
     # Core client classes
     "PolymarketClient",
     "PolymarketConfig",
-    "ClobClient",
-    "GammaClient",
 
     # Base exceptions
     "PolymarketError",

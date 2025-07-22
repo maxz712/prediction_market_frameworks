@@ -16,7 +16,7 @@ from .models import LimitOrderRequest, Market, OrderBook, OrderList, OrderRespon
 from .models.order import OrderType as PMOrderType
 
 
-class ClobClient:
+class _ClobClient:
     """
     Wrapper around py_clob_client.ClobClient that extends functionality
     with additional CLOB API endpoints not implemented in the base client.

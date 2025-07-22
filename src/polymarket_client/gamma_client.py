@@ -16,7 +16,7 @@ from .exceptions import (
 from .models import Event, EventList, PaginatedResponse, PaginationInfo
 
 
-class GammaClient:
+class _GammaClient:
     """Client for interacting with Polymarket Gamma API.
     
     Handles event and market data retrieval from the Gamma API service.
@@ -34,18 +34,18 @@ class GammaClient:
         self._session = self._init_session()
 
     @classmethod
-    def from_config(cls, config: PolymarketConfig) -> "GammaClient":
-        """Create GammaClient from configuration object."""
+    def from_config(cls, config: PolymarketConfig) -> "_GammaClient":
+        """Create _GammaClient from configuration object."""
         return cls(config)
 
     @classmethod
-    def from_env(cls) -> "GammaClient":
-        """Create GammaClient from environment variables."""
+    def from_env(cls) -> "_GammaClient":
+        """Create _GammaClient from environment variables."""
         config = PolymarketConfig.from_env()
         return cls(config)
 
     @classmethod
-    def from_url(cls, url: str, **config_kwargs) -> "GammaClient":
+    def from_url(cls, url: str, **config_kwargs) -> "_GammaClient":
         """Create GammaClient from URL (backward compatibility).
         
         Args:
