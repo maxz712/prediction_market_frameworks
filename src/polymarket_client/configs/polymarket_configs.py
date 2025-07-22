@@ -10,7 +10,8 @@ class PolymarketConfig(BaseModel):
             "gamma": "https://gamma-api.polymarket.com",
             "clob": "https://clob.polymarket.com",
             "info": "https://strapi-matic.polymarket.com",
-            "neg_risk": "https://neg-risk-api.polymarket.com"
+            "neg_risk": "https://neg-risk-api.polymarket.com",
+            "data_api": "https://data-api.polymarket.com"
         },
         description="API endpoint URLs for Polymarket services"
     )
@@ -93,6 +94,8 @@ class PolymarketConfig(BaseModel):
             endpoints["info"] = os.getenv("POLYMARKET_INFO_URL")
         if os.getenv("POLYMARKET_NEG_RISK_URL"):
             endpoints["neg_risk"] = os.getenv("POLYMARKET_NEG_RISK_URL")
+        if os.getenv("POLYMARKET_DATA_API_URL"):
+            endpoints["data_api"] = os.getenv("POLYMARKET_DATA_API_URL")
         if endpoints:
             config_data["endpoints"] = endpoints
 

@@ -16,6 +16,7 @@ from .models import (
     OrderResponse,
     PaginatedResponse,
     TradeHistory,
+    UserPositions,
 )
 
 
@@ -364,8 +365,15 @@ class PolymarketClient:
         """
         return self.clob_client.get_open_orders(market)
 
-    def get_current_user_position(self, market: str | None = None) -> dict[str, Any]:
-        """Get current user position."""
+    def get_current_user_position(self, market: str | None = None) -> UserPositions:
+        """Get current user position.
+        
+        Args:
+            market: Optional market filter
+            
+        Returns:
+            UserPositions: User positions data model
+        """
         return self.clob_client.get_current_user_position(market)
 
     # Analytics and statistics methods (CLOB API)
@@ -381,6 +389,15 @@ class PolymarketClient:
                           limit: int = 100) -> dict[str, Any]:
         """Get candlestick data."""
         return self.clob_client.get_market_candles(market_id, interval, limit)
+
+    # Convenience methods
+    def get_user_address(self) -> str:
+        """Get the Ethereum address of the authenticated user.
+        
+        Returns:
+            str: The user's Ethereum address
+        """
+        return self.clob_client.get_user_address()
 
     # Access to underlying src for advanced usage
     @property

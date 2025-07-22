@@ -20,6 +20,7 @@ from .models import (
     OrderList,
     OrderResponse,
     TradeHistory,
+    UserPositions,
 )
 from .models.order import OrderType as PMOrderType
 
@@ -223,7 +224,7 @@ class _ClobClient:
         Get user positions across all markets.
         Extended endpoint for position tracking.
         """
-        url = f"{self.config.get_endpoint('clob')}/positions"
+        url = f"{self.config.get_endpoint('data_api')}/positions"
         params = {"user": user_address}
 
         response = self._session.get(url, params=params)
@@ -329,26 +330,28 @@ class _ClobClient:
 
         return OrderList.from_raw_response(raw_response)
 
-    def get_current_user_position(self, market: str | None = None) -> dict[str, Any]:
+    def get_current_user_position(self, market: str | None = None) -> UserPositions:
         """
         Get current user position.
         
         Args:
             market: Optional market filter
+            
+        Returns:
+            UserPositions: User positions data model
         """
-        # Get user address from credentials
-        user_address = self.config.api_creds.api_key  # This might need adjustment based on actual API
-        positions = self.get_user_positions(user_address)
-
+        # Get user address from the py_clob_client
+        user_address = self._py_client.get_address()
+        positions_data = self.get_user_positions(user_address)
+        
+        # Convert to UserPositions model
+        user_positions = UserPositions.from_raw_data(positions_data)
+        
+        # Filter by market if specified
         if market:
-            # Filter positions by market if specified
-            filtered_positions = []
-            for position in positions.get("positions", []):
-                if position.get("market") == market:
-                    filtered_positions.append(position)
-            return {"positions": filtered_positions}
-
-        return positions
+            return user_positions.filter_by_market(market)
+        
+        return user_positions
 
     # Balance and Allowance Methods
     def get_balance_allowance(self, asset_type: str = "COLLATERAL", token_id: str = None) -> dict[str, Any]:
@@ -423,6 +426,15 @@ class _ClobClient:
         except Exception as e:
             print(f"Error checking allowance: {e}")
             return False
+
+    # Convenience methods
+    def get_user_address(self) -> str:
+        """Get the Ethereum address of the authenticated user.
+        
+        Returns:
+            str: The user's Ethereum address
+        """
+        return self._py_client.get_address()
 
     # Expose the underlying client for any methods not explicitly wrapped
     @property
