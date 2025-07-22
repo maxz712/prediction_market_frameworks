@@ -1,5 +1,4 @@
 from collections.abc import Generator
-from typing import Any
 
 from .clob_client import _ClobClient
 from .configs.polymarket_configs import PolymarketConfig
@@ -15,6 +14,7 @@ from .models import (
     OrderList,
     OrderResponse,
     PaginatedResponse,
+    PricesHistory,
     TradeHistory,
     UserActivity,
     UserPositions,
@@ -313,6 +313,52 @@ class PolymarketClient:
         """Get comprehensive trade history."""
         return self.clob_client.get_user_market_trades_history(token_id, limit, offset)
 
+    def get_prices_history(
+        self,
+        market: str,
+        start_ts: int | None = None,
+        end_ts: int | None = None,
+        interval: str | None = None,
+        fidelity: int | None = None
+    ) -> PricesHistory:
+        """
+        Get price history for a specific market.
+        
+        Args:
+            market: The CLOB token ID for which to fetch price history
+            start_ts: Start time as Unix timestamp in UTC (optional)
+            end_ts: End time as Unix timestamp in UTC (optional)
+            interval: Duration ending at current time, options: 1m, 1w, 1d, 6h, 1h, max (optional)
+            fidelity: Data resolution in minutes (optional)
+            
+        Returns:
+            PricesHistory: Custom data model containing price history
+            
+        Examples:
+            # Get all available price history
+            history = client.get_prices_history("0x1234...")
+            
+            # Get price history for the last week
+            history = client.get_prices_history("0x1234...", interval="1w")
+            
+            # Get price history between specific timestamps
+            history = client.get_prices_history(
+                market="0x1234...",
+                start_ts=1640995200,  # Jan 1, 2022
+                end_ts=1672531200     # Jan 1, 2023
+            )
+            
+            # Get hourly price data
+            history = client.get_prices_history("0x1234...", fidelity=60)
+        """
+        return self.clob_client.get_prices_history(
+            market=market,
+            start_ts=start_ts,
+            end_ts=end_ts,
+            interval=interval,
+            fidelity=fidelity
+        )
+
     def cancel_order(self, order_id: str) -> CancelResponse:
         """Cancel an order.
         
@@ -377,7 +423,7 @@ class PolymarketClient:
             UserPositions: User positions data model
         """
         return self.clob_client.get_user_position(proxy_wallet_address, market)
-    
+
     def get_current_user_position(self, market: str | None = None) -> UserPositions:
         """Get current user position.
         
@@ -452,7 +498,7 @@ class PolymarketClient:
             sort_by=sort_by,
             sort_direction=sort_direction
         )
-    
+
     def get_current_user_activity(
         self,
         limit: int = 100,

@@ -17,6 +17,7 @@ from .order_book import BookLevel, OrderBook
 from .order_response import OrderResponse
 from .pagination import PaginatedResponse, PaginationInfo
 from .position import Position, UserPositions
+from .price_history import PricePoint, PricesHistory
 from .trade_history import MakerOrder, Trade, TradeHistory
 
 __all__ = [
@@ -41,6 +42,8 @@ __all__ = [
     "PaginatedResponse",
     "PaginationInfo",
     "Position",
+    "PricePoint",
+    "PricesHistory",
     "Tag",
     "Trade",
     "TradeHistory",

@@ -19,6 +19,7 @@ from .models import (
     OrderBook,
     OrderList,
     OrderResponse,
+    PricesHistory,
     TradeHistory,
     UserActivity,
     UserPositions,
@@ -64,13 +65,13 @@ class _ClobClient:
         self._session = self._init_session()
 
     @classmethod
-    def from_config_dict(cls, config_dict: dict[str, Any]) -> "ClobClient":
+    def from_config_dict(cls, config_dict: dict[str, Any]) -> "_ClobClient":
         """Create ClobClient from configuration dictionary."""
         config = PolymarketConfig(**config_dict)
         return cls(config)
 
     @classmethod
-    def from_env(cls) -> "ClobClient":
+    def from_env(cls) -> "_ClobClient":
         """Create ClobClient from environment variables."""
         config = PolymarketConfig.from_env()
         return cls(config)
@@ -256,7 +257,7 @@ class _ClobClient:
             requests.exceptions.HTTPError: If the API request fails
         """
         url = f"{self.config.get_endpoint('data_api')}/activity"
-        
+
         params = {
             "user": proxy_wallet_address,
             "limit": min(limit, 500),  # Ensure we don't exceed API limit
@@ -264,7 +265,7 @@ class _ClobClient:
             "sortBy": sort_by,
             "sortDirection": sort_direction
         }
-        
+
         # Add optional filters
         if market:
             params["market"] = market
@@ -276,13 +277,13 @@ class _ClobClient:
             params["end"] = end
         if side:
             params["side"] = side.upper()
-        
+
         response = self._session.get(url, params=params)
         response.raise_for_status()
-        
+
         activity_data = response.json()
         return UserActivity.from_raw_data(activity_data)
-    
+
     def get_current_user_activity(
         self,
         limit: int = 100,
@@ -418,16 +419,16 @@ class _ClobClient:
             UserPositions: User positions data model
         """
         positions_data = self.get_user_positions(proxy_wallet_address)
-        
+
         # Convert to UserPositions model
         user_positions = UserPositions.from_raw_data(positions_data)
-        
+
         # Filter by market if specified
         if market:
             return user_positions.filter_by_market(market)
-        
+
         return user_positions
-    
+
     def get_current_user_position(self, market: str | None = None) -> UserPositions:
         """
         Get current user position.
@@ -518,6 +519,57 @@ class _ClobClient:
         except Exception as e:
             print(f"Error checking allowance: {e}")
             return False
+
+    def get_prices_history(
+        self,
+        market: str,
+        start_ts: int | None = None,
+        end_ts: int | None = None,
+        interval: str | None = None,
+        fidelity: int | None = None
+    ) -> PricesHistory:
+        """
+        Get price history for a specific market.
+        
+        Args:
+            market: The CLOB token ID for which to fetch price history
+            start_ts: Start time as Unix timestamp in UTC (optional)
+            end_ts: End time as Unix timestamp in UTC (optional)
+            interval: Duration ending at current time, options: 1m, 1w, 1d, 6h, 1h, max (optional)
+            fidelity: Data resolution in minutes (optional)
+            
+        Returns:
+            PricesHistory: Custom data model containing price history
+            
+        Raises:
+            requests.exceptions.HTTPError: If the API request fails
+        """
+        url = f"{self.config.get_endpoint('clob')}/prices-history"
+
+        params = {"market": market}
+
+        # Add optional parameters
+        if start_ts is not None:
+            params["startTs"] = start_ts
+        if end_ts is not None:
+            params["endTs"] = end_ts
+        if interval is not None:
+            params["interval"] = interval
+        if fidelity is not None:
+            params["fidelity"] = fidelity
+
+        response = self._session.get(url, params=params)
+        response.raise_for_status()
+
+        raw_data = response.json()
+        return PricesHistory.from_raw_data(
+            raw_data=raw_data,
+            market=market,
+            start_ts=start_ts,
+            end_ts=end_ts,
+            interval=interval,
+            fidelity=fidelity
+        )
 
     # Convenience methods
     def get_user_address(self) -> str:
