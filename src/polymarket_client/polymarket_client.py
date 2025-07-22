@@ -16,6 +16,7 @@ from .models import (
     OrderResponse,
     PaginatedResponse,
     TradeHistory,
+    UserActivity,
     UserPositions,
 )
 
@@ -365,6 +366,18 @@ class PolymarketClient:
         """
         return self.clob_client.get_open_orders(market)
 
+    def get_user_position(self, proxy_wallet_address: str, market: str | None = None) -> UserPositions:
+        """Get user position.
+        
+        Args:
+            proxy_wallet_address: The proxy wallet address to get positions for
+            market: Optional market filter
+            
+        Returns:
+            UserPositions: User positions data model
+        """
+        return self.clob_client.get_user_position(proxy_wallet_address, market)
+    
     def get_current_user_position(self, market: str | None = None) -> UserPositions:
         """Get current user position.
         
@@ -376,14 +389,133 @@ class PolymarketClient:
         """
         return self.clob_client.get_current_user_position(market)
 
+    def get_user_activity(
+        self,
+        proxy_wallet_address: str,
+        limit: int = 100,
+        offset: int = 0,
+        market: str | None = None,
+        activity_type: str | None = None,
+        start: int | None = None,
+        end: int | None = None,
+        side: str | None = None,
+        sort_by: str = "TIMESTAMP",
+        sort_direction: str = "DESC"
+    ) -> UserActivity:
+        """Get user's on-chain activity history.
+        
+        Args:
+            proxy_wallet_address: The proxy wallet address to get activity for
+            limit: Maximum number of activities to return (max 500, default 100)
+            offset: Pagination offset (default 0)
+            market: Comma-separated market condition IDs to filter by
+            activity_type: Activity types to filter by (TRADE, SPLIT, MERGE, REDEEM, REWARD, CONVERSION)
+            start: Start timestamp (Unix seconds)
+            end: End timestamp (Unix seconds)
+            side: Trade side filter (BUY or SELL)
+            sort_by: Sort field (TIMESTAMP, TOKENS, CASH) (default TIMESTAMP)
+            sort_direction: Sort order (ASC or DESC) (default DESC)
+            
+        Returns:
+            UserActivity: Custom data model containing activity history
+            
+        Examples:
+            # Get recent activity
+            activity = client.get_user_activity("0x1234...", limit=50)
+            
+            # Get only trades
+            trades = client.get_user_activity("0x1234...", activity_type="TRADE")
+            
+            # Get activity for a specific market
+            market_activity = client.get_user_activity(
+                proxy_wallet_address="0x1234...",
+                market="0x5678...",
+                limit=100
+            )
+            
+            # Get buy trades only
+            buy_trades = client.get_user_activity(
+                proxy_wallet_address="0x1234...",
+                activity_type="TRADE",
+                side="BUY"
+            )
+        """
+        return self.clob_client.get_user_activity(
+            proxy_wallet_address=proxy_wallet_address,
+            limit=limit,
+            offset=offset,
+            market=market,
+            activity_type=activity_type,
+            start=start,
+            end=end,
+            side=side,
+            sort_by=sort_by,
+            sort_direction=sort_direction
+        )
+    
+    def get_current_user_activity(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+        market: str | None = None,
+        activity_type: str | None = None,
+        start: int | None = None,
+        end: int | None = None,
+        side: str | None = None,
+        sort_by: str = "TIMESTAMP",
+        sort_direction: str = "DESC"
+    ) -> UserActivity:
+        """Get current user's on-chain activity history.
+        
+        Args:
+            limit: Maximum number of activities to return (max 500, default 100)
+            offset: Pagination offset (default 0)
+            market: Comma-separated market condition IDs to filter by
+            activity_type: Activity types to filter by (TRADE, SPLIT, MERGE, REDEEM, REWARD, CONVERSION)
+            start: Start timestamp (Unix seconds)
+            end: End timestamp (Unix seconds)
+            side: Trade side filter (BUY or SELL)
+            sort_by: Sort field (TIMESTAMP, TOKENS, CASH) (default TIMESTAMP)
+            sort_direction: Sort order (ASC or DESC) (default DESC)
+            
+        Returns:
+            UserActivity: Custom data model containing activity history
+            
+        Examples:
+            # Get recent activity
+            activity = client.get_current_user_activity(limit=50)
+            
+            # Get only trades
+            trades = client.get_current_user_activity(activity_type="TRADE")
+            
+            # Get activity for a specific market
+            market_activity = client.get_current_user_activity(
+                market="0x1234...",
+                limit=100
+            )
+            
+            # Get buy trades only
+            buy_trades = client.get_current_user_activity(
+                activity_type="TRADE",
+                side="BUY"
+            )
+        """
+        return self.clob_client.get_current_user_activity(
+            limit=limit,
+            offset=offset,
+            market=market,
+            activity_type=activity_type,
+            start=start,
+            end=end,
+            side=side,
+            sort_by=sort_by,
+            sort_direction=sort_direction
+        )
+
     # Analytics and statistics methods (CLOB API)
     def get_market_statistics(self, market_id: str) -> dict[str, Any]:
         """Get market statistics."""
         return self.clob_client.get_market_statistics(market_id)
-
-    def get_user_positions(self, user_address: str) -> dict[str, Any]:
-        """Get user positions."""
-        return self.clob_client.get_user_positions(user_address)
 
     def get_market_candles(self, market_id: str, interval: str = "1h",
                           limit: int = 100) -> dict[str, Any]:

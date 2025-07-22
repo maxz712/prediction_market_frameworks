@@ -20,6 +20,7 @@ from .models import (
     OrderList,
     OrderResponse,
     TradeHistory,
+    UserActivity,
     UserPositions,
 )
 from .models.order import OrderType as PMOrderType
@@ -231,6 +232,114 @@ class _ClobClient:
         response.raise_for_status()
         return response.json()
 
+    def get_user_activity(
+        self,
+        proxy_wallet_address: str,
+        limit: int = 100,
+        offset: int = 0,
+        market: str | None = None,
+        activity_type: str | None = None,
+        start: int | None = None,
+        end: int | None = None,
+        side: str | None = None,
+        sort_by: str = "TIMESTAMP",
+        sort_direction: str = "DESC"
+    ) -> UserActivity:
+        """
+        Get user's on-chain activity history.
+        
+        Args:
+            proxy_wallet_address: The proxy wallet address to get activity for
+            limit: Maximum number of activities to return (max 500, default 100)
+            offset: Pagination offset (default 0)
+            market: Comma-separated market condition IDs to filter by
+            activity_type: Activity types to filter by (TRADE, SPLIT, MERGE, REDEEM, REWARD, CONVERSION)
+            start: Start timestamp (Unix seconds)
+            end: End timestamp (Unix seconds)
+            side: Trade side filter (BUY or SELL)
+            sort_by: Sort field (TIMESTAMP, TOKENS, CASH) (default TIMESTAMP)
+            sort_direction: Sort order (ASC or DESC) (default DESC)
+            
+        Returns:
+            UserActivity: Custom data model containing activity history
+            
+        Raises:
+            requests.exceptions.HTTPError: If the API request fails
+        """
+        url = f"{self.config.get_endpoint('data_api')}/activity"
+        
+        params = {
+            "user": proxy_wallet_address,
+            "limit": min(limit, 500),  # Ensure we don't exceed API limit
+            "offset": offset,
+            "sortBy": sort_by,
+            "sortDirection": sort_direction
+        }
+        
+        # Add optional filters
+        if market:
+            params["market"] = market
+        if activity_type:
+            params["type"] = activity_type
+        if start is not None:
+            params["start"] = start
+        if end is not None:
+            params["end"] = end
+        if side:
+            params["side"] = side.upper()
+        
+        response = self._session.get(url, params=params)
+        response.raise_for_status()
+        
+        activity_data = response.json()
+        return UserActivity.from_raw_data(activity_data)
+    
+    def get_current_user_activity(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+        market: str | None = None,
+        activity_type: str | None = None,
+        start: int | None = None,
+        end: int | None = None,
+        side: str | None = None,
+        sort_by: str = "TIMESTAMP",
+        sort_direction: str = "DESC"
+    ) -> UserActivity:
+        """
+        Get current user's on-chain activity history.
+        
+        Args:
+            limit: Maximum number of activities to return (max 500, default 100)
+            offset: Pagination offset (default 0)
+            market: Comma-separated market condition IDs to filter by
+            activity_type: Activity types to filter by (TRADE, SPLIT, MERGE, REDEEM, REWARD, CONVERSION)
+            start: Start timestamp (Unix seconds)
+            end: End timestamp (Unix seconds)
+            side: Trade side filter (BUY or SELL)
+            sort_by: Sort field (TIMESTAMP, TOKENS, CASH) (default TIMESTAMP)
+            sort_direction: Sort order (ASC or DESC) (default DESC)
+            
+        Returns:
+            UserActivity: Custom data model containing activity history
+            
+        Raises:
+            requests.exceptions.HTTPError: If the API request fails
+        """
+        user_address = self.get_user_address()
+        return self.get_user_activity(
+            proxy_wallet_address=user_address,
+            limit=limit,
+            offset=offset,
+            market=market,
+            activity_type=activity_type,
+            start=start,
+            end=end,
+            side=side,
+            sort_by=sort_by,
+            sort_direction=sort_direction
+        )
+
     def get_market_candles(self, market_id: str, interval: str = "1h",
                           limit: int = 100) -> dict[str, Any]:
         """
@@ -330,6 +439,28 @@ class _ClobClient:
 
         return OrderList.from_raw_response(raw_response)
 
+    def get_user_position(self, proxy_wallet_address: str, market: str | None = None) -> UserPositions:
+        """
+        Get user position.
+        
+        Args:
+            proxy_wallet_address: The proxy wallet address to get positions for
+            market: Optional market filter
+            
+        Returns:
+            UserPositions: User positions data model
+        """
+        positions_data = self.get_user_positions(proxy_wallet_address)
+        
+        # Convert to UserPositions model
+        user_positions = UserPositions.from_raw_data(positions_data)
+        
+        # Filter by market if specified
+        if market:
+            return user_positions.filter_by_market(market)
+        
+        return user_positions
+    
     def get_current_user_position(self, market: str | None = None) -> UserPositions:
         """
         Get current user position.
@@ -342,16 +473,10 @@ class _ClobClient:
         """
         # Get user address from the py_clob_client
         user_address = self._py_client.get_address()
-        positions_data = self.get_user_positions(user_address)
-        
-        # Convert to UserPositions model
-        user_positions = UserPositions.from_raw_data(positions_data)
-        
-        # Filter by market if specified
-        if market:
-            return user_positions.filter_by_market(market)
-        
-        return user_positions
+        return self.get_user_position(
+            proxy_wallet_address=user_address,
+            market=market
+        )
 
     # Balance and Allowance Methods
     def get_balance_allowance(self, asset_type: str = "COLLATERAL", token_id: str = None) -> dict[str, Any]:

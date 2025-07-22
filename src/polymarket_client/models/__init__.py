@@ -1,5 +1,6 @@
 """Polymarket SDK models package."""
 
+from .activity import Activity, ActivityMarket, UserActivity, UserProfile
 from .cancel_response import CancelResponse
 from .event import ClobReward, Event, EventList, Tag
 from .event import Market as EventMarket
@@ -19,6 +20,8 @@ from .position import Position, UserPositions
 from .trade_history import MakerOrder, Trade, TradeHistory
 
 __all__ = [
+    "Activity",
+    "ActivityMarket",
     "BookLevel",
     "CancelResponse",
     "ClobReward",
@@ -41,5 +44,7 @@ __all__ = [
     "Tag",
     "Trade",
     "TradeHistory",
-    "UserPositions"
+    "UserActivity",
+    "UserPositions",
+    "UserProfile"
 ]
