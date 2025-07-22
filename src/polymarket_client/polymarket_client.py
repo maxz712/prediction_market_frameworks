@@ -512,16 +512,6 @@ class PolymarketClient:
             sort_direction=sort_direction
         )
 
-    # Analytics and statistics methods (CLOB API)
-    def get_market_statistics(self, market_id: str) -> dict[str, Any]:
-        """Get market statistics."""
-        return self.clob_client.get_market_statistics(market_id)
-
-    def get_market_candles(self, market_id: str, interval: str = "1h",
-                          limit: int = 100) -> dict[str, Any]:
-        """Get candlestick data."""
-        return self.clob_client.get_market_candles(market_id, interval, limit)
-
     # Convenience methods
     def get_user_address(self) -> str:
         """Get the Ethereum address of the authenticated user.

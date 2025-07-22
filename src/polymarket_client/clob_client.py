@@ -209,17 +209,6 @@ class _ClobClient:
             print(f"Warning: Could not fetch trade history: {e}")
             return TradeHistory.from_raw_trades([])
 
-    def get_market_statistics(self, market_id: str) -> dict[str, Any]:
-        """
-        Get comprehensive market statistics.
-        Extended endpoint for market analytics.
-        """
-        url = f"{self.config.get_endpoint('clob')}/markets/{market_id}/stats"
-
-        response = self._session.get(url)
-        response.raise_for_status()
-        return response.json()
-
     def get_user_positions(self, user_address: str) -> dict[str, Any]:
         """
         Get user positions across all markets.
@@ -339,28 +328,6 @@ class _ClobClient:
             sort_by=sort_by,
             sort_direction=sort_direction
         )
-
-    def get_market_candles(self, market_id: str, interval: str = "1h",
-                          limit: int = 100) -> dict[str, Any]:
-        """
-        Get candlestick data for market price history.
-        Extended endpoint for historical price data.
-        
-        Args:
-            market_id: Market identifier
-            interval: Time interval (1m, 5m, 15m, 1h, 4h, 1d)
-            limit: Number of candles to return
-        """
-        url = f"{self.config.get_endpoint('clob')}/candles"
-        params = {
-            "market": market_id,
-            "interval": interval,
-            "limit": limit
-        }
-
-        response = self._session.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
 
     # Trading execution methods
     def submit_market_order(self, token_id: str, side: str, size: float) -> dict[str, Any]:
