@@ -15,6 +15,7 @@ from urllib3.util.retry import Retry
 from .configs.polymarket_configs import PolymarketConfig
 from .models import LimitOrderRequest, Market, OrderBook, OrderList, OrderResponse, PaginatedResponse
 from .models.order import OrderType as PMOrderType
+from .models.trade import Trade, Candle
 from .mixins import PaginationMixin
 from .pagination import create_offset_paginator
 
@@ -138,22 +139,51 @@ class ClobClient:
         return self._py_client.cancel_all()
 
     # Extended functionality - additional CLOB API endpoints
-    def get_market_trades_history(self, market_id: str, limit: int = 100,
-                                 offset: int = 0) -> dict[str, Any]:
-        """
-        Get comprehensive trade history for a market.
-        Extended endpoint not available in base py_clob_client.
-        """
+    def _fetch_trades_raw(self, market_id: str, limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
+        """Internal method to fetch raw trade data."""
         url = f"{self.config.get_endpoint('clob')}/trade-history"
         params = {
             "market": market_id,
             "limit": limit,
             "offset": offset
         }
-
         response = self._session.get(url, params=params)
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        # Assuming the API returns trades in a 'trades' field or directly as a list
+        return data.get('trades', data) if isinstance(data, dict) else data
+
+    def get_market_trades_history(self, market_id: str, limit: int | None = None,
+                                 offset: int = 0, paginated: bool = False) -> list[Trade] | PaginatedResponse[Trade]:
+        """
+        Get comprehensive trade history for a market.
+        Extended endpoint not available in base py_clob_client.
+        
+        Args:
+            market_id: Market identifier
+            limit: Maximum number of trades to return (None for all available)
+            offset: Starting offset for pagination
+            paginated: If True, returns PaginatedResponse with metadata
+            
+        Returns:
+            List of Trade objects or PaginatedResponse[Trade] if paginated=True
+        """
+        # Create fetch function with bound market_id
+        def fetch_func(**kwargs):
+            return self._fetch_trades_raw(market_id=market_id, **kwargs)
+        
+        # Create paginator
+        paginator = create_offset_paginator(
+            fetch_func=fetch_func,
+            model_class=Trade,
+            config=self.config,
+            initial_offset=offset
+        )
+        
+        if paginated:
+            return paginator.fetch_paginated(limit=limit, market=market_id, offset=offset)
+        else:
+            return paginator.fetch_all(limit=limit, market=market_id, offset=offset)
 
     def get_market_statistics(self, market_id: str) -> dict[str, Any]:
         """
@@ -178,8 +208,24 @@ class ClobClient:
         response.raise_for_status()
         return response.json()
 
+    def _fetch_candles_raw(self, market_id: str, interval: str = "1h", limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
+        """Internal method to fetch raw candle data."""
+        url = f"{self.config.get_endpoint('clob')}/candles"
+        params = {
+            "market": market_id,
+            "interval": interval,
+            "limit": limit,
+            "offset": offset
+        }
+        response = self._session.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        # Assuming the API returns candles in a 'candles' field or directly as a list
+        return data.get('candles', data) if isinstance(data, dict) else data
+
     def get_market_candles(self, market_id: str, interval: str = "1h",
-                          limit: int = 100) -> dict[str, Any]:
+                          limit: int | None = None, offset: int = 0, 
+                          paginated: bool = False) -> list[Candle] | PaginatedResponse[Candle]:
         """
         Get candlestick data for market price history.
         Extended endpoint for historical price data.
@@ -187,18 +233,29 @@ class ClobClient:
         Args:
             market_id: Market identifier
             interval: Time interval (1m, 5m, 15m, 1h, 4h, 1d)
-            limit: Number of candles to return
+            limit: Maximum number of candles to return (None for all available)
+            offset: Starting offset for pagination
+            paginated: If True, returns PaginatedResponse with metadata
+            
+        Returns:
+            List of Candle objects or PaginatedResponse[Candle] if paginated=True
         """
-        url = f"{self.config.get_endpoint('clob')}/candles"
-        params = {
-            "market": market_id,
-            "interval": interval,
-            "limit": limit
-        }
-
-        response = self._session.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
+        # Create fetch function with bound parameters
+        def fetch_func(**kwargs):
+            return self._fetch_candles_raw(market_id=market_id, interval=interval, **kwargs)
+        
+        # Create paginator
+        paginator = create_offset_paginator(
+            fetch_func=fetch_func,
+            model_class=Candle,
+            config=self.config,
+            initial_offset=offset
+        )
+        
+        if paginated:
+            return paginator.fetch_paginated(limit=limit, market=market_id, interval=interval, offset=offset)
+        else:
+            return paginator.fetch_all(limit=limit, market=market_id, interval=interval, offset=offset)
 
     # Trading execution methods
     def submit_market_order(self, token_id: str, side: str, size: float) -> dict[str, Any]:

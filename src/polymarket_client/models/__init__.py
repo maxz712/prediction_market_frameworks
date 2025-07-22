@@ -14,9 +14,11 @@ from .order import (
 from .order_response import OrderResponse
 from .order_book import BookLevel, OrderBook
 from .pagination import PaginatedResponse, PaginationInfo
+from .trade import Trade, Candle
 
 __all__ = [
     "BookLevel",
+    "Candle",
     "ClobReward",
     "Event",
     "EventList",
@@ -32,5 +34,6 @@ __all__ = [
     "OrderType",
     "PaginatedResponse",
     "PaginationInfo",
-    "Tag"
+    "Tag",
+    "Trade"
 ]
