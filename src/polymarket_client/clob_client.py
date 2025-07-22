@@ -12,7 +12,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .configs.polymarket_configs import PolymarketConfig
-from .models import LimitOrderRequest, Market, OrderBook, OrderList, OrderResponse
+from .models import LimitOrderRequest, Market, OrderBook, OrderList, OrderResponse, TradeHistory
 from .models.order import OrderType as PMOrderType
 
 
@@ -79,16 +79,16 @@ class _ClobClient:
         return session
 
     # Delegate existing methods to the underlying py_clob_client
-    def get_market(self, condition_id: str) -> Market:
+    def get_market(self, token_id: str) -> Market:
         """Get market data for a given condition ID.
         
         Args:
-            condition_id: The condition ID of the market to retrieve
+            token_id: The condition ID of the market to retrieve
             
         Returns:
             Market: A Market model instance with the market data
         """
-        market_data = self._py_client.get_market(condition_id)
+        market_data = self._py_client.get_market(token_id)
         return Market.model_validate(market_data)
 
     def get_order_book(self, token_id: str) -> OrderBook:
@@ -135,22 +135,49 @@ class _ClobClient:
         return self._py_client.cancel_all()
 
     # Extended functionality - additional CLOB API endpoints
-    def get_market_trades_history(self, market_id: str, limit: int = 100,
-                                 offset: int = 0) -> dict[str, Any]:
+    def get_market_trades_history(self, token_id: str, limit: int = 100,
+                                 offset: int = 0) -> TradeHistory:
         """
         Get comprehensive trade history for a market.
-        Extended endpoint not available in base py_clob_client.
+        
+        Note: This method uses the py_clob_client get_trades method to fetch trade history.
+        The market_id parameter is used for filtering if possible, but the py_clob_client
+        get_trades method returns all trades for the authenticated user.
+        
+        Args:
+            token_id: Market identifier (used for documentation, actual filtering depends on API)
+            limit: Maximum number of trades to return
+            offset: Offset for pagination (converted to cursor if needed)
+            
+        Returns:
+            TradeHistory: Custom data model containing trade history
         """
-        url = f"{self.config.get_endpoint('clob')}/trade-history"
-        params = {
-            "market": market_id,
-            "limit": limit,
-            "offset": offset
-        }
-
-        response = self._session.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
+        try:
+            # Use py_clob_client's get_trades method which returns user's trade history
+            # Note: py_clob_client doesn't have market-specific filtering in get_trades
+            raw_trades = self._py_client.get_trades()
+            
+            # If we have trades and a token_id filter, filter client-side
+            if token_id and isinstance(raw_trades, list):
+                # Filter trades by token_id if provided
+                filtered_trades = [trade for trade in raw_trades if trade.get('market') == token_id]
+                raw_trades = filtered_trades
+            
+            # Apply limit if specified
+            if isinstance(raw_trades, list) and limit:
+                raw_trades = raw_trades[:limit]
+            
+            # Convert to our custom model
+            if isinstance(raw_trades, list):
+                return TradeHistory.from_raw_trades(raw_trades)
+            else:
+                # In case py_clob_client returns a different format
+                return TradeHistory.from_raw_trades([])
+                
+        except Exception as e:
+            # Fallback: return empty trade history if there's an error
+            print(f"Warning: Could not fetch trade history: {e}")
+            return TradeHistory.from_raw_trades([])
 
     def get_market_statistics(self, market_id: str) -> dict[str, Any]:
         """

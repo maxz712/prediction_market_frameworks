@@ -15,6 +15,7 @@ from .models import (
     OrderResponse,
     OrderType,
     PaginatedResponse,
+    TradeHistory,
 )
 
 
@@ -305,10 +306,10 @@ class PolymarketClient:
         """Get order book for a token."""
         return self.clob_client.get_order_book(token_id)
 
-    def get_market_trades_history(self, market_id: str, limit: int = 100,
-                                 offset: int = 0) -> dict[str, Any]:
+    def get_market_trades_history(self, token_id: str, limit: int = 100,
+                                 offset: int = 0) -> TradeHistory:
         """Get comprehensive trade history."""
-        return self.clob_client.get_market_trades_history(market_id, limit, offset)
+        return self.clob_client.get_market_trades_history(token_id, limit, offset)
 
     def cancel_order(self, order_id: str) -> dict[str, Any]:
         """Cancel an order."""
