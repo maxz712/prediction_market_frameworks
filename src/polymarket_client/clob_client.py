@@ -1,5 +1,4 @@
 from typing import Any
-from collections.abc import Generator
 
 import requests
 from py_clob_client.client import ClobClient as PyClobClient
@@ -13,10 +12,8 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .configs.polymarket_configs import PolymarketConfig
-from .models import LimitOrderRequest, Market, OrderBook, OrderList, OrderResponse, PaginatedResponse
+from .models import LimitOrderRequest, Market, OrderBook, OrderList, OrderResponse
 from .models.order import OrderType as PMOrderType
-from .mixins import PaginationMixin
-from .pagination import create_offset_paginator
 
 
 class ClobClient:

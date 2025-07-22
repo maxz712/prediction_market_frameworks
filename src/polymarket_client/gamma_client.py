@@ -14,7 +14,6 @@ from .exceptions import (
     PolymarketValidationError,
 )
 from .models import Event, EventList, PaginatedResponse, PaginationInfo
-from .pagination import create_offset_paginator
 
 
 class GammaClient:
@@ -609,39 +608,6 @@ class GammaClient:
                 field="related_tags",
                 value=related_tags
             )
-
-    def _fetch_events_raw(self, **kwargs) -> list[dict[str, Any]]:
-        """Raw fetch function for events that returns unvalidated data.
-        
-        This is designed to be used with the unified paginator.
-        """
-        url = f"{self.base_url}/events"
-        
-        try:
-            resp = self._session.get(url, params=kwargs)
-            resp.raise_for_status()
-            events = resp.json()
-        except requests.RequestException as e:
-            raise PolymarketNetworkError(
-                f"Failed to fetch events: {e}",
-                original_error=e,
-                endpoint=url
-            )
-        except requests.HTTPError as e:
-            raise PolymarketAPIError(
-                f"API request failed: {e}",
-                status_code=resp.status_code if "resp" in locals() else None,
-                endpoint=url
-            )
-        
-        if not isinstance(events, list):
-            raise PolymarketAPIError(
-                f"Unexpected response format: expected list, got {type(events).__name__}",
-                response_data=events,
-                endpoint=url
-            )
-        
-        return events
 
     def health_check(self) -> dict[str, Any]:
         """Check if the Gamma API is accessible.
