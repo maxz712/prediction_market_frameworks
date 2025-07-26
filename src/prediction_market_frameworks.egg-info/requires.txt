@@ -1,0 +1,16 @@
+aiohttp>=3.12.13
+py-clob-client>=0.23.0
+py-order-utils>=0.3.2
+pydantic>=2.0.0
+python-dotenv>=1.1.1
+requests>=2.31.0
+web3>=7.12.0
+
+[dev]
+pytest>=8.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.12.0
+ruff>=0.1.0
+black>=23.0.0
+mypy>=1.7.0
+pre-commit>=3.6.0
