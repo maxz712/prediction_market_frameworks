@@ -60,14 +60,14 @@ class UserPositions(BaseModel):
     def from_raw_data(cls, data: dict[str, Any] | list[dict[str, Any]]) -> "UserPositions":
         """Create UserPositions from raw API data."""
         positions = []
-        
+
         # Handle case where data is a list directly (data API format)
         if isinstance(data, list):
             positions_list = data
         # Handle case where data is a dict with "positions" key (other API format)
         else:
             positions_list = data.get("positions", [])
-        
+
         for pos_data in positions_list:
             try:
                 positions.append(Position.from_raw_data(pos_data))

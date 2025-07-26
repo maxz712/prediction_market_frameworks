@@ -1,8 +1,8 @@
 """Activity models for on-chain user activity data."""
 
-from typing import Any, Optional
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 
 from pydantic import BaseModel, Field, validator
 
@@ -12,16 +12,16 @@ class ActivityMarket(BaseModel):
     condition_id: str = Field(description="The condition ID of the market")
     question: str = Field(description="The market question")
     slug: str = Field(description="The market slug")
-    group_item_title: Optional[str] = Field(None, description="Group item title")
-    group_item_threshold: Optional[str] = Field(None, description="Group item threshold")
-    end_date_iso: Optional[str] = Field(None, description="Market end date in ISO format")
+    group_item_title: str | None = Field(None, description="Group item title")
+    group_item_threshold: str | None = Field(None, description="Group item threshold")
+    end_date_iso: str | None = Field(None, description="Market end date in ISO format")
 
 
 class UserProfile(BaseModel):
     """User profile information in activity data."""
-    name: Optional[str] = Field(None, description="User display name")
-    username: Optional[str] = Field(None, description="Username")
-    profile_picture: Optional[str] = Field(None, description="Profile picture URL")
+    name: str | None = Field(None, description="User display name")
+    username: str | None = Field(None, description="Username")
+    profile_picture: str | None = Field(None, description="Profile picture URL")
 
 
 class Activity(BaseModel):
@@ -32,13 +32,13 @@ class Activity(BaseModel):
     condition_id: str = Field(description="Market condition ID")
     type: str = Field(description="Activity type (TRADE, SPLIT, MERGE, REDEEM, REWARD, CONVERSION)")
     size: str = Field(description="Size of the activity (as string to preserve precision)")
-    price: Optional[str] = Field(None, description="Price of the trade (if applicable)")
-    side: Optional[str] = Field(None, description="Trade side (BUY/SELL) if applicable")
-    outcome: Optional[str] = Field(None, description="Outcome name if applicable")
-    market: Optional[ActivityMarket] = Field(None, description="Market information")
-    user_profile: Optional[UserProfile] = Field(None, description="User profile information")
+    price: str | None = Field(None, description="Price of the trade (if applicable)")
+    side: str | None = Field(None, description="Trade side (BUY/SELL) if applicable")
+    outcome: str | None = Field(None, description="Outcome name if applicable")
+    market: ActivityMarket | None = Field(None, description="Market information")
+    user_profile: UserProfile | None = Field(None, description="User profile information")
 
-    @validator('timestamp')
+    @validator("timestamp")
     def validate_timestamp(cls, v):
         """Ensure timestamp is a valid Unix timestamp."""
         if v < 0:
@@ -56,7 +56,7 @@ class Activity(BaseModel):
         return Decimal(self.size)
 
     @property
-    def price_decimal(self) -> Optional[Decimal]:
+    def price_decimal(self) -> Decimal | None:
         """Get price as Decimal for precise calculations."""
         return Decimal(self.price) if self.price else None
 
@@ -79,7 +79,7 @@ class Activity(BaseModel):
 class UserActivity(BaseModel):
     """User activity history response."""
     activities: list[Activity] = Field(default_factory=list, description="List of user activities")
-    total_count: Optional[int] = Field(None, description="Total count if available")
+    total_count: int | None = Field(None, description="Total count if available")
 
     @classmethod
     def from_raw_data(cls, raw_data: list[dict[str, Any]]) -> "UserActivity":
@@ -88,7 +88,7 @@ class UserActivity(BaseModel):
         for item in raw_data:
             # Handle nested market data
             market_data = None
-            if "market" in item and item["market"]:
+            if item.get("market"):
                 market_data = ActivityMarket(
                     condition_id=item["market"].get("conditionId", ""),
                     question=item["market"].get("question", ""),
@@ -100,7 +100,7 @@ class UserActivity(BaseModel):
 
             # Handle nested user profile data
             user_profile_data = None
-            if "userProfile" in item and item["userProfile"]:
+            if item.get("userProfile"):
                 user_profile_data = UserProfile(
                     name=item["userProfile"].get("name"),
                     username=item["userProfile"].get("username"),
