@@ -2,7 +2,7 @@
 
 import os
 
-from prediction_market_frameworks import (
+from src import (
     PolymarketClient,
     PolymarketConfig,
     PolymarketError,

@@ -1,6 +1,6 @@
 """Tests for custom exceptions."""
 
-from src.polymarket_client.exceptions import (
+from src.exceptions import (
     PolymarketAPIError,
     PolymarketAuthenticationError,
     PolymarketError,

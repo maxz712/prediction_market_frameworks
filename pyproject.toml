@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "polymarket-client"
 version = "0.1.0"
-description = "Unified Python SDK for prediction market platforms (Polymarket, Kalshi)"
+description = "Python SDK for Polymarket prediction market platform"
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [
     {name = "Max Zhang"}
 ]
 license = {text = "MIT"}
-keywords = ["prediction-markets", "polymarket", "kalshi", "trading", "api", "sdk"]
+keywords = ["prediction-markets", "polymarket", "trading", "api", "sdk"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
