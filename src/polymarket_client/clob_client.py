@@ -66,18 +66,40 @@ class _ClobClient:
 
     @classmethod
     def from_config_dict(cls, config_dict: dict[str, Any]) -> "_ClobClient":
-        """Create ClobClient from configuration dictionary."""
+        """Create ClobClient from configuration dictionary.
+        
+        Args:
+            config_dict: Dictionary containing configuration parameters
+            
+        Returns:
+            _ClobClient: New CLOB client instance
+        """
         config = PolymarketConfig(**config_dict)
         return cls(config)
 
     @classmethod
     def from_env(cls) -> "_ClobClient":
-        """Create ClobClient from environment variables."""
+        """Create ClobClient from environment variables.
+        
+        Loads configuration from environment variables and creates a new client.
+        
+        Returns:
+            _ClobClient: New CLOB client instance
+            
+        Raises:
+            PolymarketConfigurationError: If required environment variables are missing
+        """
         config = PolymarketConfig.from_env()
         return cls(config)
 
     def _init_session(self) -> requests.Session:
-        """Initialize session with retry strategy for direct API calls."""
+        """Initialize session with retry strategy for direct API calls.
+        
+        Sets up retry strategy and timeouts for HTTP requests to CLOB API endpoints.
+        
+        Returns:
+            requests.Session: Configured session with retry strategy
+        """
         session = requests.Session()
         retry = Retry(
             total=self.config.max_retries, backoff_factor=0.3,
@@ -123,7 +145,14 @@ class _ClobClient:
 
 
     def post_order(self, order_args: dict[str, Any]) -> dict[str, Any]:
-        """Post an order using OrderArgs."""
+        """Post an order using OrderArgs.
+        
+        Args:
+            order_args: Dictionary containing order parameters (token_id, price, size, side)
+            
+        Returns:
+            dict: Raw response from the order submission
+        """
         # Convert dict to OrderArgs and use create_and_post_order
         order_args_obj = OrderArgs(
             token_id=order_args["token_id"],
@@ -213,7 +242,18 @@ class _ClobClient:
     def get_user_positions(self, user_address: str) -> dict[str, Any]:
         """
         Get user positions across all markets.
-        Extended endpoint for position tracking.
+        
+        Extended endpoint for position tracking that retrieves all positions
+        for a given user address across different markets.
+        
+        Args:
+            user_address: The Ethereum address to get positions for
+            
+        Returns:
+            dict: Raw positions data from the API
+            
+        Raises:
+            requests.exceptions.HTTPError: If the API request fails
         """
         url = f"{self.config.get_endpoint('data_api')}/positions"
         params = {"user": user_address}
@@ -583,5 +623,12 @@ class _ClobClient:
     # Expose the underlying client for any methods not explicitly wrapped
     @property
     def py_client(self) -> PyClobClient:
-        """Access to the underlying py_clob_client for advanced usage."""
+        """Access to the underlying py_clob_client for advanced usage.
+        
+        Provides direct access to the py_clob_client instance for operations
+        not exposed through this wrapper interface.
+        
+        Returns:
+            PyClobClient: The underlying py_clob_client instance
+        """
         return self._py_client
