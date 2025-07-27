@@ -49,10 +49,10 @@ class InputSanitizer:
         """Sanitize token ID input.
 
         Args:
-            token_id: Token ID string
+            token_id: Token ID string (hex or decimal format)
 
         Returns:
-            Sanitized token ID or None if invalid
+            Sanitized token ID in hex format or None if invalid
 
         Raises:
             ValueError: If token ID format is invalid
@@ -68,11 +68,21 @@ class InputSanitizer:
         if not token_id:
             return None
 
-        if not cls.HEX_TOKEN_ID_PATTERN.match(token_id):
+        # Check if it's already in hex format
+        if cls.HEX_TOKEN_ID_PATTERN.match(token_id):
+            return token_id.lower()
+
+        # Try to convert from decimal format
+        try:
+            # Check if it's a valid decimal number
+            if token_id.isdigit():
+                hex_token = hex(int(token_id))
+                return hex_token.lower()
             msg = f"Invalid token ID format: {token_id}"
             raise ValueError(msg)
-
-        return token_id.lower()
+        except ValueError as e:
+            msg = f"Invalid token ID format: {token_id}"
+            raise ValueError(msg) from e
 
     @classmethod
     def sanitize_order_id(cls, order_id: str | None) -> str | None:

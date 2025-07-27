@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class ActivityMarket(BaseModel):
@@ -47,8 +47,8 @@ class Activity(BaseModel):
         None, description="User profile information"
     )
 
-    @validator("timestamp")
-    def validate_timestamp(self, v):
+    @field_validator("timestamp")
+    def validate_timestamp(cls, v):
         """Ensure timestamp is a valid Unix timestamp."""
         if v < 0:
             msg = "Timestamp cannot be negative"

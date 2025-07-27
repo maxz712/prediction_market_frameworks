@@ -488,9 +488,12 @@ class _ClobClient:
         # Convert to UserPositions model
         user_positions = UserPositions.from_raw_data(positions_data)
 
-        # Filter by market if specified
+        # Filter by token_id if specified (the market parameter represents a token_id for filtering)
         if market:
-            return user_positions.filter_by_market(market)
+            filtered = [
+                pos for pos in user_positions.positions if pos.token_id == market
+            ]
+            return UserPositions(positions=filtered)
 
         return user_positions
 

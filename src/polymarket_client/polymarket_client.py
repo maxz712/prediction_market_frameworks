@@ -444,11 +444,11 @@ class PolymarketClient:
                 spread = float(best_ask.price) - float(best_bid.price)
                 print(f"Current spread: {spread}")
         """
-        sanitized_token_id = InputSanitizer.sanitize_token_id(token_id)
-        if sanitized_token_id is None:
+        # Validate that token_id is provided and is a string
+        if not token_id or not isinstance(token_id, str):
             msg = "Invalid token_id format"
             raise ValueError(msg)
-        return self.clob_client.get_order_book(sanitized_token_id)
+        return self.clob_client.get_order_book(token_id)
 
     def get_user_market_trades_history(
         self, token_id: str, limit: int = 100, offset: int = 0
@@ -621,8 +621,11 @@ class PolymarketClient:
         if sanitized_address is None:
             msg = "Invalid proxy_wallet_address format"
             raise ValueError(msg)
-        sanitized_market = InputSanitizer.sanitize_token_id(market) if market else None
-        return self.clob_client.get_user_position(sanitized_address, sanitized_market)
+        # Don't sanitize market parameter - it should be a token_id in decimal format for filtering
+        if market and not isinstance(market, str):
+            msg = "Invalid market format"
+            raise ValueError(msg)
+        return self.clob_client.get_user_position(sanitized_address, market)
 
     def get_current_user_position(self, market: str | None = None) -> UserPositions:
         """Get current user position.
