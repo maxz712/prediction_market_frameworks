@@ -121,10 +121,10 @@ class TestMeasurePerformance:
         """Test measuring a failed operation."""
         logger = logging.getLogger("test")
 
-        with caplog.at_level(logging.INFO):
-            with pytest.raises(ValueError):
-                with measure_performance(logger, "test_operation"):
-                    raise ValueError("Test error")
+        with caplog.at_level(logging.INFO), pytest.raises(ValueError):
+            with measure_performance(logger, "test_operation"):
+                msg = "Test error"
+                raise ValueError(msg)
 
         assert len(caplog.records) == 1
         record = caplog.records[0]

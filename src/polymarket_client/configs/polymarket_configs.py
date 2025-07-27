@@ -43,6 +43,16 @@ class PolymarketConfig(BaseModel):
     enable_console_logging: bool = Field(default=True, description="Enable console logging")
     log_file_path: str | None = Field(None, description="File path for log output")
 
+    # Rate limiting settings
+    enable_rate_limiting: bool = Field(default=True, description="Enable client-side rate limiting")
+    rate_limiter_type: str = Field(default="token_bucket", description="Rate limiter type: 'token_bucket' or 'sliding_window'")
+    requests_per_second: float = Field(default=5.0, description="Max requests per second for token bucket rate limiter")
+    burst_capacity: int | None = Field(default=None, description="Burst capacity for token bucket (defaults to 2x rate)")
+    requests_per_window: int = Field(default=100, description="Max requests per window for sliding window rate limiter")
+    window_size_seconds: int = Field(default=60, description="Window size in seconds for sliding window rate limiter")
+    rate_limit_per_host: bool = Field(default=True, description="Apply rate limiting per host (vs globally)")
+    rate_limit_timeout: float | None = Field(default=30.0, description="Max time to wait for rate limit (None for no timeout)")
+
     # SDK metadata
     sdk_version: str = Field(default="0.1.0", description="SDK version for User-Agent header")
 
@@ -50,14 +60,16 @@ class PolymarketConfig(BaseModel):
     @classmethod
     def validate_not_empty(cls, v):
         if not v or not v.strip():
-            raise ValueError("Required field cannot be empty")
+            msg = "Required field cannot be empty"
+            raise ValueError(msg)
         return v.strip()
 
     @field_validator("wallet_proxy_address")
     @classmethod
     def validate_proxy_address(cls, v):
         if v is not None and (not v or not v.strip()):
-            raise ValueError("Wallet proxy address cannot be empty string")
+            msg = "Wallet proxy address cannot be empty string"
+            raise ValueError(msg)
         return v.strip() if v else None
 
     @field_validator("endpoints")
@@ -65,7 +77,8 @@ class PolymarketConfig(BaseModel):
     def validate_endpoints(cls, v):
         required_endpoints = {"gamma", "clob"}
         if not all(endpoint in v for endpoint in required_endpoints):
-            raise ValueError(f"endpoints must contain keys: {required_endpoints}")
+            msg = f"endpoints must contain keys: {required_endpoints}"
+            raise ValueError(msg)
         return v
 
     @classmethod
@@ -90,7 +103,15 @@ class PolymarketConfig(BaseModel):
                  log_level_env: str = "POLYMARKET_LOG_LEVEL",
                  log_format_env: str = "POLYMARKET_LOG_FORMAT",
                  enable_console_logging_env: str = "POLYMARKET_ENABLE_CONSOLE_LOGGING",
-                 log_file_path_env: str = "POLYMARKET_LOG_FILE_PATH") -> "PolymarketConfig":
+                 log_file_path_env: str = "POLYMARKET_LOG_FILE_PATH",
+                 enable_rate_limiting_env: str = "POLYMARKET_ENABLE_RATE_LIMITING",
+                 rate_limiter_type_env: str = "POLYMARKET_RATE_LIMITER_TYPE",
+                 requests_per_second_env: str = "POLYMARKET_REQUESTS_PER_SECOND",
+                 burst_capacity_env: str = "POLYMARKET_BURST_CAPACITY",
+                 requests_per_window_env: str = "POLYMARKET_REQUESTS_PER_WINDOW",
+                 window_size_seconds_env: str = "POLYMARKET_WINDOW_SIZE_SECONDS",
+                 rate_limit_per_host_env: str = "POLYMARKET_RATE_LIMIT_PER_HOST",
+                 rate_limit_timeout_env: str = "POLYMARKET_RATE_LIMIT_TIMEOUT") -> "PolymarketConfig":
         """Create config from environment variables."""
         config_data = {
             "api_key": os.getenv(api_key_env, ""),
@@ -182,6 +203,42 @@ class PolymarketConfig(BaseModel):
         if log_file_path_str:
             config_data["log_file_path"] = log_file_path_str
 
+        # Rate limiting settings
+        enable_rate_limiting_str = os.getenv(enable_rate_limiting_env)
+        if enable_rate_limiting_str:
+            config_data["enable_rate_limiting"] = enable_rate_limiting_str.lower() in ("true", "1", "yes")
+
+        rate_limiter_type_str = os.getenv(rate_limiter_type_env)
+        if rate_limiter_type_str:
+            config_data["rate_limiter_type"] = rate_limiter_type_str
+
+        requests_per_second_str = os.getenv(requests_per_second_env)
+        if requests_per_second_str:
+            config_data["requests_per_second"] = float(requests_per_second_str)
+
+        burst_capacity_str = os.getenv(burst_capacity_env)
+        if burst_capacity_str:
+            config_data["burst_capacity"] = int(burst_capacity_str)
+
+        requests_per_window_str = os.getenv(requests_per_window_env)
+        if requests_per_window_str:
+            config_data["requests_per_window"] = int(requests_per_window_str)
+
+        window_size_seconds_str = os.getenv(window_size_seconds_env)
+        if window_size_seconds_str:
+            config_data["window_size_seconds"] = int(window_size_seconds_str)
+
+        rate_limit_per_host_str = os.getenv(rate_limit_per_host_env)
+        if rate_limit_per_host_str:
+            config_data["rate_limit_per_host"] = rate_limit_per_host_str.lower() in ("true", "1", "yes")
+
+        rate_limit_timeout_str = os.getenv(rate_limit_timeout_env)
+        if rate_limit_timeout_str:
+            if rate_limit_timeout_str.lower() in ("none", "null", ""):
+                config_data["rate_limit_timeout"] = None
+            else:
+                config_data["rate_limit_timeout"] = float(rate_limit_timeout_str)
+
         return cls(**config_data)
 
     @property
@@ -196,7 +253,8 @@ class PolymarketConfig(BaseModel):
     def get_endpoint(self, service: str) -> str:
         """Get endpoint URL for a specific service."""
         if service not in self.endpoints:
-            raise ValueError(f"Service '{service}' not found in endpoints. Available: {list(self.endpoints.keys())}")
+            msg = f"Service '{service}' not found in endpoints. Available: {list(self.endpoints.keys())}"
+            raise ValueError(msg)
         return self.endpoints[service].rstrip("/")
 
     class Config:

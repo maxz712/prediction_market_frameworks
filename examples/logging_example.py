@@ -16,7 +16,6 @@ def main():
     """Demonstrate logging setup and usage."""
 
     # Example 1: Setup structured JSON logging
-    print("=== Structured JSON Logging ===")
     setup_logging(
         level="INFO",
         format_type="structured",
@@ -27,7 +26,6 @@ def main():
     logger.info("Client initialized with structured logging")
 
     # Example 2: Setup simple human-readable logging
-    print("\n=== Simple Human-Readable Logging ===")
     setup_logging(
         level="DEBUG",
         format_type="simple",
@@ -40,7 +38,6 @@ def main():
     logger.warning("Warning message with simple format")
 
     # Example 3: Log to file as well
-    print("\n=== Logging to File ===")
     setup_logging(
         level="INFO",
         format_type="structured",
@@ -52,7 +49,6 @@ def main():
     logger.info("This message will be logged to both console and file")
 
     # Example 4: Using structured logging in practice
-    print("\n=== Practical Usage Example ===")
 
     # Simulate typical client usage with logging
     logger.info(
@@ -88,7 +84,8 @@ def main():
     # Simulate error handling
     try:
         # This would be actual client code
-        raise ValueError("Invalid order size")
+        msg = "Invalid order size"
+        raise ValueError(msg)
     except ValueError as e:
         logger.error(
             "Order placement failed",
@@ -99,7 +96,6 @@ def main():
             exc_info=True
         )
 
-    print("\nLog file created: polymarket_client.log")
 
 
 if __name__ == "__main__":

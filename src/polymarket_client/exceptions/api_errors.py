@@ -7,7 +7,7 @@ from .base import PolymarketError
 
 class PolymarketAPIError(PolymarketError):
     """Base exception for API-related errors.
-    
+
     This is raised when there are issues with API communication,
     including HTTP errors, authentication issues, and server errors.
     """
@@ -21,7 +21,7 @@ class PolymarketAPIError(PolymarketError):
         endpoint: str | None = None
     ) -> None:
         """Initialize the API error.
-        
+
         Args:
             message: Human-readable error message
             status_code: HTTP status code if available
@@ -48,7 +48,7 @@ class PolymarketAPIError(PolymarketError):
 
 class PolymarketAuthenticationError(PolymarketAPIError):
     """Exception raised for authentication failures.
-    
+
     This includes:
     - Invalid API credentials
     - Expired tokens
@@ -61,7 +61,7 @@ class PolymarketAuthenticationError(PolymarketAPIError):
 
 class PolymarketAuthorizationError(PolymarketAPIError):
     """Exception raised for authorization failures.
-    
+
     This is raised when the user is authenticated but doesn't have
     permission to access a specific resource or perform an action.
     """
@@ -72,7 +72,7 @@ class PolymarketAuthorizationError(PolymarketAPIError):
 
 class PolymarketRateLimitError(PolymarketAPIError):
     """Exception raised when rate limit is exceeded.
-    
+
     This includes information about when the client can retry.
     """
 
@@ -83,7 +83,7 @@ class PolymarketRateLimitError(PolymarketAPIError):
         **kwargs
     ) -> None:
         """Initialize the rate limit error.
-        
+
         Args:
             message: Error message
             retry_after: Seconds to wait before retrying
@@ -101,7 +101,7 @@ class PolymarketRateLimitError(PolymarketAPIError):
 
 class PolymarketNotFoundError(PolymarketAPIError):
     """Exception raised when a resource is not found.
-    
+
     This includes:
     - Market not found
     - Order not found
@@ -114,7 +114,7 @@ class PolymarketNotFoundError(PolymarketAPIError):
 
 class PolymarketServerError(PolymarketAPIError):
     """Exception raised for server errors (5xx status codes).
-    
+
     This indicates an issue on Polymarket's side that should be retried.
     """
 
@@ -124,7 +124,7 @@ class PolymarketServerError(PolymarketAPIError):
 
 class PolymarketClientError(PolymarketAPIError):
     """Exception raised for client errors (4xx status codes).
-    
+
     This indicates an issue with the request that shouldn't be retried
     without modification.
     """
@@ -142,7 +142,7 @@ class PolymarketBadRequestError(PolymarketClientError):
 
 class PolymarketConflictError(PolymarketClientError):
     """Exception raised for conflict errors (409 status code).
-    
+
     This typically indicates a business logic violation, such as
     trying to create a duplicate resource.
     """

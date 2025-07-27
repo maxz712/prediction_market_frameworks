@@ -58,10 +58,11 @@ class Order(BaseModel):
     def _parse_timestamp(timestamp_value) -> datetime:
         """Parse timestamp from various formats (Unix timestamp or ISO string)."""
         if timestamp_value is None:
-            raise ValueError("Timestamp cannot be None")
+            msg = "Timestamp cannot be None"
+            raise ValueError(msg)
 
         # Handle Unix timestamp (integer or string that represents a number)
-        if isinstance(timestamp_value, (int, float)):
+        if isinstance(timestamp_value, int | float):
             return datetime.fromtimestamp(timestamp_value)
 
         # Handle string timestamp (could be Unix timestamp or ISO format)
@@ -74,7 +75,8 @@ class Order(BaseModel):
                 # Try to parse as ISO format
                 return datetime.fromisoformat(timestamp_value.replace("Z", "+00:00"))
 
-        raise ValueError(f"Unable to parse timestamp: {timestamp_value}")
+        msg = f"Unable to parse timestamp: {timestamp_value}"
+        raise ValueError(msg)
 
     @classmethod
     def from_raw_data(cls, raw_order: dict) -> "Order":

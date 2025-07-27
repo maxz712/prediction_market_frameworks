@@ -59,7 +59,7 @@ class TestPolymarketClient:
         result = client.get_events(limit=5)
 
         mock_get_events.assert_called_once_with(
-            limit=5, offset=0, auto_paginate=None, order=None, ascending=True, 
+            limit=5, offset=0, auto_paginate=None, order=None, ascending=True,
             event_id=None, slug=None, archived=None, active=True, closed=False,
             liquidity_min=None, liquidity_max=None, volume_min=None, volume_max=None,
             start_date_min=None, start_date_max=None, end_date_min=None, end_date_max=None,
@@ -76,7 +76,7 @@ class TestPolymarketClient:
         result = client.get_active_events(limit=10)
 
         mock_get_events.assert_called_once_with(
-            limit=10, offset=0, auto_paginate=None, order=None, ascending=True, 
+            limit=10, offset=0, auto_paginate=None, order=None, ascending=True,
             event_id=None, slug=None, archived=None, active=True, closed=False,
             liquidity_min=None, liquidity_max=None, volume_min=None, volume_max=None,
             start_date_min=None, start_date_max=None, end_date_min=None, end_date_max=None,
@@ -90,7 +90,7 @@ class TestPolymarketClient:
         mock_get_market.return_value = sample_market_data
         client = PolymarketClient(test_config)
 
-        result = client.get_market("0x1234567890abcdef1234567890abcdef12345678")
+        client.get_market("0x1234567890abcdef1234567890abcdef12345678")
 
         mock_get_market.assert_called_once_with("0x1234567890abcdef1234567890abcdef12345678")
         # Note: The actual result would be a Market model, but we're testing delegation

@@ -73,7 +73,7 @@ class TestGammaClient:
         client = GammaClient(test_config)
 
         # Call without limit - should use config default
-        result = client.get_events()
+        client.get_events()
 
         # Check that the request was made with config default page size
         args, kwargs = mock_get.call_args

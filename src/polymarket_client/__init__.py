@@ -64,23 +64,16 @@ from .models import (
     UserProfile,
 )
 from .polymarket_client import PolymarketClient
+from .rate_limiter import (
+    RateLimitedHTTPAdapter,
+    RateLimitError,
+    SlidingWindowRateLimiter,
+    TokenBucketRateLimiter,
+    create_rate_limited_session,
+)
 from .sanitization import InputSanitizer
 
 __all__ = [
-    # Core client classes
-    "PolymarketClient",
-    "PolymarketConfig",
-
-    # Input sanitization
-    "InputSanitizer",
-
-    # Logging utilities
-    "setup_logging",
-    "get_logger",
-    "log_api_request",
-    "log_api_response",
-    "log_user_action",
-
     # Data models
     "Activity",
     "ActivityMarket",
@@ -90,6 +83,8 @@ __all__ = [
     "Event",
     "EventList",
     "EventMarket",
+    # Input sanitization
+    "InputSanitizer",
     "LimitOrderRequest",
     "MakerOrder",
     "Market",
@@ -102,45 +97,56 @@ __all__ = [
     "OrderType",
     "PaginatedResponse",
     "PaginationInfo",
+    # API exceptions
+    "PolymarketAPIError",
+    "PolymarketAuthenticationError",
+    "PolymarketAuthorizationError",
+    "PolymarketBadRequestError",
+    "PolymarketBusinessRuleError",
+    # Core client classes
+    "PolymarketClient",
+    "PolymarketClientError",
+    "PolymarketConfig",
+    "PolymarketConfigurationError",
+    "PolymarketConflictError",
+    "PolymarketConnectionError",
+    "PolymarketDNSError",
+    # Base exceptions
+    "PolymarketError",
+    "PolymarketFieldValidationError",
+    "PolymarketFormatValidationError",
+    # Network exceptions
+    "PolymarketNetworkError",
+    "PolymarketNotFoundError",
+    "PolymarketProxyError",
+    "PolymarketRangeValidationError",
+    "PolymarketRateLimitError",
+    "PolymarketRequiredFieldError",
+    "PolymarketSSLError",
+    "PolymarketServerError",
+    "PolymarketTimeoutError",
+    "PolymarketTypeValidationError",
+    # Validation exceptions
+    "PolymarketValidationError",
     "Position",
     "PricePoint",
     "PricesHistory",
+    # Rate limiting
+    "RateLimitError",
+    "RateLimitedHTTPAdapter",
+    "SlidingWindowRateLimiter",
     "Tag",
+    "TokenBucketRateLimiter",
     "Trade",
     "TradeHistory",
     "UserActivity",
     "UserPositions",
     "UserProfile",
-
-    # Base exceptions
-    "PolymarketError",
-    "PolymarketConfigurationError",
-
-    # API exceptions
-    "PolymarketAPIError",
-    "PolymarketAuthenticationError",
-    "PolymarketAuthorizationError",
-    "PolymarketRateLimitError",
-    "PolymarketNotFoundError",
-    "PolymarketServerError",
-    "PolymarketClientError",
-    "PolymarketBadRequestError",
-    "PolymarketConflictError",
-
-    # Validation exceptions
-    "PolymarketValidationError",
-    "PolymarketFieldValidationError",
-    "PolymarketTypeValidationError",
-    "PolymarketRangeValidationError",
-    "PolymarketRequiredFieldError",
-    "PolymarketFormatValidationError",
-    "PolymarketBusinessRuleError",
-
-    # Network exceptions
-    "PolymarketNetworkError",
-    "PolymarketConnectionError",
-    "PolymarketTimeoutError",
-    "PolymarketSSLError",
-    "PolymarketProxyError",
-    "PolymarketDNSError",
+    "create_rate_limited_session",
+    "get_logger",
+    "log_api_request",
+    "log_api_response",
+    "log_user_action",
+    # Logging utilities
+    "setup_logging",
 ]

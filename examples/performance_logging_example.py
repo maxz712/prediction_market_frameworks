@@ -56,10 +56,8 @@ async def simulate_async_operation(delay_ms: float = 50.0) -> str:
 
 def main() -> None:
     """Main example function."""
-    print("=== Polymarket Client Performance Logging Example ===\n")
 
     # 1. Setup performance logging
-    print("1. Setting up performance logging...")
     setup_logging(
         level="INFO",
         format_type="structured",  # Use structured JSON logging
@@ -68,11 +66,9 @@ def main() -> None:
     )
 
     # 2. Create a performance logger and metrics collector
-    print("2. Creating performance logger and metrics collector...")
     logger, metrics = create_performance_logger("example")
 
     # 3. Example 1: Using the measure_performance context manager
-    print("\n3. Example 1: Measuring API calls with context manager")
 
     for i in range(3):
         with measure_performance(
@@ -81,10 +77,8 @@ def main() -> None:
             metadata={"endpoint": "/markets", "attempt": i + 1}
         ):
             result = simulate_api_call(random.uniform(50, 200))
-            print(f"   API call {i + 1} completed: {result['status']}")
 
     # 4. Example 2: Using PerformanceMetrics class for detailed tracking
-    print("\n4. Example 2: Using PerformanceMetrics for detailed operation tracking")
 
     operations = [
         ("fetch_markets", 150, {"query": "active"}),
@@ -101,10 +95,8 @@ def main() -> None:
         # Record the operation
         metrics.record_operation(operation, duration, success, metadata)
 
-        print(f"   Recorded {operation}: {duration:.1f}ms ({'success' if success else 'failed'})")
 
     # 5. Example 3: Measuring database operations
-    print("\n5. Example 3: Measuring database operations")
 
     db_operations = [
         ("SELECT", 500),
@@ -128,7 +120,6 @@ def main() -> None:
                 {"records": record_count}
             )
 
-            print(f"   Database {operation}: {record_count} records in {duration_ms:.1f}ms")
 
         except Exception as e:
             duration_ms = (time.perf_counter() - start_time) * 1000
@@ -138,17 +129,15 @@ def main() -> None:
                 False,
                 {"records": record_count, "error": str(e)}
             )
-            print(f"   Database {operation} failed: {e}")
 
     # 6. Example 4: Async operations (requires some manual timing)
-    print("\n6. Example 4: Measuring async operations")
 
     async def run_async_examples():
         for i in range(2):
             start_time = time.perf_counter()
 
             try:
-                result = await simulate_async_operation(random.uniform(30, 100))
+                await simulate_async_operation(random.uniform(30, 100))
                 duration_ms = (time.perf_counter() - start_time) * 1000
 
                 metrics.record_operation(
@@ -158,7 +147,6 @@ def main() -> None:
                     {"iteration": i + 1}
                 )
 
-                print(f"   {result}")
 
             except Exception as e:
                 duration_ms = (time.perf_counter() - start_time) * 1000
@@ -168,13 +156,11 @@ def main() -> None:
                     False,
                     {"iteration": i + 1, "error": str(e)}
                 )
-                print(f"   Async operation {i + 1} failed: {e}")
 
     # Run async examples
     asyncio.run(run_async_examples())
 
     # 7. Example 5: Memory usage logging
-    print("\n7. Example 5: Logging memory usage")
 
     # Log memory before heavy operation
     log_memory_usage(logger, "before_heavy_operation")
@@ -191,7 +177,6 @@ def main() -> None:
     del large_data
 
     # 8. Generate operation summaries
-    print("\n8. Generating operation summaries...")
 
     all_operations = [
         "api_call", "fetch_markets", "fetch_positions", "place_order", "cancel_order",
@@ -201,26 +186,13 @@ def main() -> None:
     for operation in all_operations:
         stats = metrics.get_operation_stats(operation)
         if stats:
-            print(f"   {operation}: {stats['count']} calls, "
-                  f"avg {stats['avg_ms']:.1f}ms, "
-                  f"range {stats['min_ms']:.1f}-{stats['max_ms']:.1f}ms")
 
             # Log summary to structured logs
             metrics.log_operation_summary(operation)
 
     # 9. Final memory usage
-    print("\n9. Final memory usage check")
     log_memory_usage(logger, "example_completion")
 
-    print("\n=== Example completed ===")
-    print("Check 'performance_metrics.log' for structured JSON logs!")
-    print("\nKey features demonstrated:")
-    print("- Context manager for automatic timing")
-    print("- Manual operation recording with metadata")
-    print("- Success/failure tracking")
-    print("- Memory usage monitoring")
-    print("- Operation statistics and summaries")
-    print("- Structured JSON logging for analysis")
 
 
 if __name__ == "__main__":

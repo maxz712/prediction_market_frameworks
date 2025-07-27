@@ -282,7 +282,7 @@ class EventList(BaseModel):
             if any(tag.slug == tag_slug for tag in event.tags)
         ]
 
-    def filter_by_volume_range(self, min_volume: Decimal = None, max_volume: Decimal = None) -> list[Event]:
+    def filter_by_volume_range(self, min_volume: Decimal | None = None, max_volume: Decimal | None = None) -> list[Event]:
         """Filter events by volume range."""
         filtered = self.events
         if min_volume is not None:

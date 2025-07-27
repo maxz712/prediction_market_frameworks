@@ -39,10 +39,11 @@ class Activity(BaseModel):
     user_profile: UserProfile | None = Field(None, description="User profile information")
 
     @validator("timestamp")
-    def validate_timestamp(cls, v):
+    def validate_timestamp(self, v):
         """Ensure timestamp is a valid Unix timestamp."""
         if v < 0:
-            raise ValueError("Timestamp cannot be negative")
+            msg = "Timestamp cannot be negative"
+            raise ValueError(msg)
         return v
 
     @property

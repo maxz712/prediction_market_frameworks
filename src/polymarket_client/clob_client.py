@@ -25,6 +25,7 @@ from .models import (
     UserPositions,
 )
 from .models.order import OrderType as PMOrderType
+from .rate_limiter import create_rate_limited_session
 
 
 class _ClobClient:
@@ -35,7 +36,7 @@ class _ClobClient:
 
     def __init__(self, config: PolymarketConfig) -> None:
         """Initialize the CLOB client.
-        
+
         Args:
             config: Polymarket configuration containing API credentials and endpoints
         """
@@ -67,10 +68,10 @@ class _ClobClient:
     @classmethod
     def from_config_dict(cls, config_dict: dict[str, Any]) -> "_ClobClient":
         """Create ClobClient from configuration dictionary.
-        
+
         Args:
             config_dict: Dictionary containing configuration parameters
-            
+
         Returns:
             _ClobClient: New CLOB client instance
         """
@@ -80,12 +81,12 @@ class _ClobClient:
     @classmethod
     def from_env(cls) -> "_ClobClient":
         """Create ClobClient from environment variables.
-        
+
         Loads configuration from environment variables and creates a new client.
-        
+
         Returns:
             _ClobClient: New CLOB client instance
-            
+
         Raises:
             PolymarketConfigurationError: If required environment variables are missing
         """
@@ -93,31 +94,50 @@ class _ClobClient:
         return cls(config)
 
     def _init_session(self) -> requests.Session:
-        """Initialize session with retry strategy for direct API calls.
-        
-        Sets up retry strategy and timeouts for HTTP requests to CLOB API endpoints.
-        
+        """Initialize session with retry strategy and rate limiting for direct API calls.
+
+        Sets up retry strategy, rate limiting, and timeouts for HTTP requests to CLOB API endpoints.
+
         Returns:
-            requests.Session: Configured session with retry strategy
+            requests.Session: Configured session with retry strategy and rate limiting
         """
-        session = requests.Session()
-        retry = Retry(
-            total=self.config.max_retries, backoff_factor=0.3,
-            status_forcelist=[429, 500, 502, 503, 504]
-        )
-        adapter = HTTPAdapter(max_retries=retry)
-        session.mount("https://", adapter)
-        session.mount("http://", adapter)
+        if self.config.enable_rate_limiting:
+            # Create rate limited session with config parameters
+            session = create_rate_limited_session(
+                rate_limiter_type=self.config.rate_limiter_type,
+                requests_per_second=self.config.requests_per_second,
+                burst_capacity=self.config.burst_capacity,
+                requests_per_window=self.config.requests_per_window,
+                window_size_seconds=self.config.window_size_seconds,
+                per_host=self.config.rate_limit_per_host,
+                timeout_on_rate_limit=self.config.rate_limit_timeout,
+                max_retries=Retry(
+                    total=self.config.max_retries,
+                    backoff_factor=0.3,
+                    status_forcelist=[429, 500, 502, 503, 504]
+                )
+            )
+        else:
+            # Create regular session without rate limiting
+            session = requests.Session()
+            retry = Retry(
+                total=self.config.max_retries, backoff_factor=0.3,
+                status_forcelist=[429, 500, 502, 503, 504]
+            )
+            adapter = HTTPAdapter(max_retries=retry)
+            session.mount("https://", adapter)
+            session.mount("http://", adapter)
+
         session.timeout = self.config.timeout
         return session
 
     # Delegate existing methods to the underlying py_clob_client
     def get_market(self, token_id: str) -> Market:
         """Get market data for a given condition ID.
-        
+
         Args:
             token_id: The condition ID of the market to retrieve
-            
+
         Returns:
             Market: A Market model instance with the market data
         """
@@ -126,10 +146,10 @@ class _ClobClient:
 
     def get_order_book(self, token_id: str) -> OrderBook:
         """Get order book for a given token ID.
-        
+
         Args:
             token_id: The token ID to get the order book for
-            
+
         Returns:
             OrderBook: The order book data model with bids, asks, and metadata
         """
@@ -146,10 +166,10 @@ class _ClobClient:
 
     def post_order(self, order_args: dict[str, Any]) -> dict[str, Any]:
         """Post an order using OrderArgs.
-        
+
         Args:
             order_args: Dictionary containing order parameters (token_id, price, size, side)
-            
+
         Returns:
             dict: Raw response from the order submission
         """
@@ -164,10 +184,10 @@ class _ClobClient:
 
     def cancel_order(self, order_id: str) -> CancelResponse:
         """Cancel an order.
-        
+
         Args:
             order_id: The order ID to cancel
-            
+
         Returns:
             CancelResponse: Response with cancellation results
         """
@@ -176,10 +196,10 @@ class _ClobClient:
 
     def cancel_orders(self, order_ids: list[str]) -> CancelResponse:
         """Cancel multiple orders.
-        
+
         Args:
             order_ids: List of order IDs to cancel
-            
+
         Returns:
             CancelResponse: Response with cancellation results
         """
@@ -188,7 +208,7 @@ class _ClobClient:
 
     def cancel_all(self) -> CancelResponse:
         """Cancel all orders.
-        
+
         Returns:
             CancelResponse: Response with cancellation results
         """
@@ -200,16 +220,16 @@ class _ClobClient:
                                  offset: int = 0) -> TradeHistory:
         """
         Get comprehensive trade history for a market.
-        
+
         Note: This method uses the py_clob_client get_trades method to fetch trade history.
         The market_id parameter is used for filtering if possible, but the py_clob_client
         get_trades method returns all trades for the authenticated user.
-        
+
         Args:
             token_id: Market identifier (used for documentation, actual filtering depends on API)
             limit: Maximum number of trades to return
             offset: Offset for pagination (converted to cursor if needed)
-            
+
         Returns:
             TradeHistory: Custom data model containing trade history
         """
@@ -234,24 +254,23 @@ class _ClobClient:
             # In case py_clob_client returns a different format
             return TradeHistory.from_raw_trades([])
 
-        except Exception as e:
+        except Exception:
             # Fallback: return empty trade history if there's an error
-            print(f"Warning: Could not fetch trade history: {e}")
             return TradeHistory.from_raw_trades([])
 
     def get_user_positions(self, user_address: str) -> dict[str, Any]:
         """
         Get user positions across all markets.
-        
+
         Extended endpoint for position tracking that retrieves all positions
         for a given user address across different markets.
-        
+
         Args:
             user_address: The Ethereum address to get positions for
-            
+
         Returns:
             dict: Raw positions data from the API
-            
+
         Raises:
             requests.exceptions.HTTPError: If the API request fails
         """
@@ -277,7 +296,7 @@ class _ClobClient:
     ) -> UserActivity:
         """
         Get user's on-chain activity history.
-        
+
         Args:
             proxy_wallet_address: The proxy wallet address to get activity for
             limit: Maximum number of activities to return (max 500, default 100)
@@ -289,10 +308,10 @@ class _ClobClient:
             side: Trade side filter (BUY or SELL)
             sort_by: Sort field (TIMESTAMP, TOKENS, CASH) (default TIMESTAMP)
             sort_direction: Sort order (ASC or DESC) (default DESC)
-            
+
         Returns:
             UserActivity: Custom data model containing activity history
-            
+
         Raises:
             requests.exceptions.HTTPError: If the API request fails
         """
@@ -338,7 +357,7 @@ class _ClobClient:
     ) -> UserActivity:
         """
         Get current user's on-chain activity history.
-        
+
         Args:
             limit: Maximum number of activities to return (max 500, default 100)
             offset: Pagination offset (default 0)
@@ -349,10 +368,10 @@ class _ClobClient:
             side: Trade side filter (BUY or SELL)
             sort_by: Sort field (TIMESTAMP, TOKENS, CASH) (default TIMESTAMP)
             sort_direction: Sort order (ASC or DESC) (default DESC)
-            
+
         Returns:
             UserActivity: Custom data model containing activity history
-            
+
         Raises:
             requests.exceptions.HTTPError: If the API request fails
         """
@@ -374,7 +393,7 @@ class _ClobClient:
     def submit_market_order(self, token_id: str, side: str, size: float) -> dict[str, Any]:
         """
         Submit a market order for immediate execution.
-        
+
         Args:
             token_id: The token ID to trade
             side: 'BUY' or 'SELL'
@@ -392,16 +411,17 @@ class _ClobClient:
     def submit_limit_order(self, request: LimitOrderRequest) -> OrderResponse:
         """
         Submit a limit order with specified order type.
-        
+
         Args:
             request: LimitOrderRequest containing order details including order_type
-            
+
         Returns:
             OrderResponse: Response with order submission details
         """
         # Validate GTD orders have expiration
         if request.order_type == PMOrderType.GTD and request.expires_at is None:
-            raise ValueError("expires_at must be set for GTD orders")
+            msg = "expires_at must be set for GTD orders"
+            raise ValueError(msg)
 
         # Build order args based on order type
         order_args_dict = {
@@ -433,10 +453,10 @@ class _ClobClient:
     def get_open_orders(self, market: str | None = None) -> OrderList:
         """
         Get current open orders for the authenticated user.
-        
+
         Args:
             market: Optional market filter
-            
+
         Returns:
             OrderList: A custom data model containing the list of open orders
         """
@@ -450,11 +470,11 @@ class _ClobClient:
     def get_user_position(self, proxy_wallet_address: str, market: str | None = None) -> UserPositions:
         """
         Get user position.
-        
+
         Args:
             proxy_wallet_address: The proxy wallet address to get positions for
             market: Optional market filter
-            
+
         Returns:
             UserPositions: User positions data model
         """
@@ -472,10 +492,10 @@ class _ClobClient:
     def get_current_user_position(self, market: str | None = None) -> UserPositions:
         """
         Get current user position.
-        
+
         Args:
             market: Optional market filter
-            
+
         Returns:
             UserPositions: User positions data model
         """
@@ -487,14 +507,14 @@ class _ClobClient:
         )
 
     # Balance and Allowance Methods
-    def get_balance_allowance(self, asset_type: str = "COLLATERAL", token_id: str = None) -> dict[str, Any]:
+    def get_balance_allowance(self, asset_type: str = "COLLATERAL", token_id: str | None = None) -> dict[str, Any]:
         """
         Get the current balance and allowance for USDC (collateral) or conditional tokens.
-        
+
         Args:
             asset_type: "COLLATERAL" for USDC or "CONDITIONAL" for conditional tokens
             token_id: Required for CONDITIONAL asset type, optional for COLLATERAL
-            
+
         Returns:
             Dictionary with balance and allowance information
         """
@@ -505,14 +525,14 @@ class _ClobClient:
         )
         return self._py_client.get_balance_allowance(params)
 
-    def update_balance_allowance(self, asset_type: str = "COLLATERAL", token_id: str = None) -> dict[str, Any]:
+    def update_balance_allowance(self, asset_type: str = "COLLATERAL", token_id: str | None = None) -> dict[str, Any]:
         """
         Update (refresh) the balance and allowance information.
-        
+
         Args:
             asset_type: "COLLATERAL" for USDC or "CONDITIONAL" for conditional tokens
             token_id: Required for CONDITIONAL asset type, optional for COLLATERAL
-            
+
         Returns:
             Dictionary with updated balance and allowance information
         """
@@ -526,7 +546,7 @@ class _ClobClient:
     def get_usdc_balance_allowance(self) -> dict[str, Any]:
         """
         Convenience method to get USDC (collateral) balance and allowance.
-        
+
         Returns:
             Dictionary with USDC balance and allowance information
         """
@@ -535,7 +555,7 @@ class _ClobClient:
     def update_usdc_balance_allowance(self) -> dict[str, Any]:
         """
         Convenience method to update USDC (collateral) balance and allowance.
-        
+
         Returns:
             Dictionary with updated USDC balance and allowance information
         """
@@ -544,10 +564,10 @@ class _ClobClient:
     def check_usdc_allowance_sufficient(self, required_amount: float) -> bool:
         """
         Check if the current USDC allowance is sufficient for a given amount.
-        
+
         Args:
             required_amount: The amount of USDC needed (in USDC units, not wei)
-            
+
         Returns:
             True if allowance is sufficient, False otherwise
         """
@@ -556,8 +576,7 @@ class _ClobClient:
             # The exact field names may vary, adjust based on actual response
             current_allowance = float(balance_info.get("allowance", 0))
             return current_allowance >= required_amount
-        except Exception as e:
-            print(f"Error checking allowance: {e}")
+        except Exception:
             return False
 
     def get_prices_history(
@@ -570,17 +589,17 @@ class _ClobClient:
     ) -> PricesHistory:
         """
         Get price history for a specific market.
-        
+
         Args:
             market: The CLOB token ID for which to fetch price history
             start_ts: Start time as Unix timestamp in UTC (optional)
             end_ts: End time as Unix timestamp in UTC (optional)
             interval: Duration ending at current time, options: 1m, 1w, 1d, 6h, 1h, max (optional)
             fidelity: Data resolution in minutes (optional)
-            
+
         Returns:
             PricesHistory: Custom data model containing price history
-            
+
         Raises:
             requests.exceptions.HTTPError: If the API request fails
         """
@@ -614,7 +633,7 @@ class _ClobClient:
     # Convenience methods
     def get_user_address(self) -> str:
         """Get the Ethereum address of the authenticated user.
-        
+
         Returns:
             str: The user's Ethereum address
         """
@@ -624,10 +643,10 @@ class _ClobClient:
     @property
     def py_client(self) -> PyClobClient:
         """Access to the underlying py_clob_client for advanced usage.
-        
+
         Provides direct access to the py_clob_client instance for operations
         not exposed through this wrapper interface.
-        
+
         Returns:
             PyClobClient: The underlying py_clob_client instance
         """

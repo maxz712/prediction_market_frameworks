@@ -31,7 +31,7 @@ class PricesHistory(BaseModel):
                      start_ts: int | None = None, end_ts: int | None = None,
                      interval: str | None = None, fidelity: int | None = None) -> "PricesHistory":
         """Create PricesHistory from raw API response data.
-        
+
         Args:
             raw_data: Raw response from the API
             market: Market ID that was queried
@@ -39,7 +39,7 @@ class PricesHistory(BaseModel):
             end_ts: End timestamp that was queried
             interval: Interval that was queried
             fidelity: Fidelity that was queried
-            
+
         Returns:
             PricesHistory instance
         """

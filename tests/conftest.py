@@ -72,7 +72,16 @@ def sample_event_data():
 def sample_market_data():
     """Sample market data for testing."""
     return {
+        "enable_order_book": True,
+        "active": True,
+        "closed": False,
+        "archived": False,
+        "accepting_orders": True,
+        "accepting_order_timestamp": "2024-01-01T00:00:00Z",
+        "minimum_order_size": 1,
+        "minimum_tick_size": 0.01,
         "condition_id": "test_condition_id",
+        "question_id": "test_question_id",
         "question": "Test question?",
         "description": "Test market description",
         "market_slug": "test-market",
@@ -80,12 +89,33 @@ def sample_market_data():
         "game_start_time": "2024-01-01T00:00:00Z",
         "seconds_delay": 0,
         "fpmm": "0x1234567890abcdef",
-        "maker_base_fee": 0.01,
-        "taker_base_fee": 0.01,
-        "tags": [],
-        "outcomes": ["Yes", "No"],
-        "outcome_prices": ["0.5", "0.5"],
-        "volume": "1000.0",
-        "volume_24hr": "100.0",
-        "liquidity": "500.0"
+        "maker_base_fee": 1,
+        "taker_base_fee": 1,
+        "notifications_enabled": True,
+        "neg_risk": False,
+        "neg_risk_market_id": "",
+        "neg_risk_request_id": "",
+        "icon": "https://example.com/icon.png",
+        "image": "https://example.com/image.png",
+        "rewards": {
+            "rates": None,
+            "min_size": 1,
+            "max_spread": 0.1
+        },
+        "is_50_50_outcome": True,
+        "tokens": [
+            {
+                "token_id": "token1",
+                "outcome": "Yes",
+                "price": 0.5,
+                "winner": False
+            },
+            {
+                "token_id": "token2",
+                "outcome": "No",
+                "price": 0.5,
+                "winner": False
+            }
+        ],
+        "tags": []
     }

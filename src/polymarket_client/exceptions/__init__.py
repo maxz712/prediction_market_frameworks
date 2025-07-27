@@ -71,35 +71,32 @@ from .validation_errors import (
 
 # Export all exceptions
 __all__ = [
-    # Base exceptions
-    "PolymarketError",
-    "PolymarketConfigurationError",
-
     # API exceptions
     "PolymarketAPIError",
     "PolymarketAuthenticationError",
     "PolymarketAuthorizationError",
-    "PolymarketRateLimitError",
-    "PolymarketNotFoundError",
-    "PolymarketServerError",
-    "PolymarketClientError",
     "PolymarketBadRequestError",
-    "PolymarketConflictError",
-
-    # Validation exceptions
-    "PolymarketValidationError",
-    "PolymarketFieldValidationError",
-    "PolymarketTypeValidationError",
-    "PolymarketRangeValidationError",
-    "PolymarketRequiredFieldError",
-    "PolymarketFormatValidationError",
     "PolymarketBusinessRuleError",
-
+    "PolymarketClientError",
+    "PolymarketConfigurationError",
+    "PolymarketConflictError",
+    "PolymarketConnectionError",
+    "PolymarketDNSError",
+    # Base exceptions
+    "PolymarketError",
+    "PolymarketFieldValidationError",
+    "PolymarketFormatValidationError",
     # Network exceptions
     "PolymarketNetworkError",
-    "PolymarketConnectionError",
-    "PolymarketTimeoutError",
-    "PolymarketSSLError",
+    "PolymarketNotFoundError",
     "PolymarketProxyError",
-    "PolymarketDNSError",
+    "PolymarketRangeValidationError",
+    "PolymarketRateLimitError",
+    "PolymarketRequiredFieldError",
+    "PolymarketSSLError",
+    "PolymarketServerError",
+    "PolymarketTimeoutError",
+    "PolymarketTypeValidationError",
+    # Validation exceptions
+    "PolymarketValidationError",
 ]

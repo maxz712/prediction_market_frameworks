@@ -225,7 +225,7 @@ class PerformanceMetrics:
 
     def __init__(self, logger: logging.Logger) -> None:
         """Initialize performance metrics collector.
-        
+
         Args:
             logger: Logger instance for metrics logging
         """
@@ -241,7 +241,7 @@ class PerformanceMetrics:
         metadata: dict[str, Any] | None = None
     ) -> None:
         """Record a completed operation with its performance data.
-        
+
         Args:
             operation: Name of the operation
             duration_ms: Time taken in milliseconds
@@ -277,10 +277,10 @@ class PerformanceMetrics:
 
     def get_operation_stats(self, operation: str) -> dict[str, float] | None:
         """Get aggregated statistics for an operation.
-        
+
         Args:
             operation: Name of the operation
-            
+
         Returns:
             Dictionary with operation statistics or None if not found
         """
@@ -298,7 +298,7 @@ class PerformanceMetrics:
 
     def log_operation_summary(self, operation: str) -> None:
         """Log aggregated statistics for an operation.
-        
+
         Args:
             operation: Name of the operation
         """
@@ -329,15 +329,15 @@ def measure_performance(
     metadata: dict[str, Any] | None = None
 ) -> Generator[None, None, None]:
     """Context manager for measuring operation performance.
-    
+
     Args:
         logger: Logger instance
         operation: Name of the operation being measured
         metadata: Additional context data
-        
+
     Yields:
         None
-        
+
     Example:
         with measure_performance(logger, "api_call", {"endpoint": "/markets"}):
             response = make_api_call()
@@ -379,7 +379,7 @@ def log_memory_usage(
     metadata: dict[str, Any] | None = None
 ) -> None:
     """Log current memory usage statistics.
-    
+
     Args:
         logger: Logger instance
         operation: Optional operation context
@@ -422,10 +422,10 @@ def log_memory_usage(
 
 def create_performance_logger(name: str) -> tuple[logging.Logger, PerformanceMetrics]:
     """Create a logger and performance metrics collector.
-    
+
     Args:
         name: Logger name
-        
+
     Returns:
         Tuple of (logger, performance_metrics)
     """

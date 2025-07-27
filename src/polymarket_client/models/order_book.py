@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, field_validator
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 class BookLevel(BaseModel):
@@ -15,7 +17,8 @@ class BookLevel(BaseModel):
     @classmethod
     def validate_non_negative(cls, v: float) -> float:
         if v < 0:
-            raise ValueError("Price, volume, and total must be non-negative")
+            msg = "Price, volume, and total must be non-negative"
+            raise ValueError(msg)
         return v
 
     class Config:
@@ -53,7 +56,8 @@ class OrderBook(BaseModel):
         """
         levels = self.bids if side == "bids" else self.asks
         if side not in ("bids", "asks"):
-            raise ValueError("side must be 'bids' or 'asks'")
+            msg = "side must be 'bids' or 'asks'"
+            raise ValueError(msg)
         return sum(l.volume for l in levels)
 
     def levels(self, side: str) -> Iterator[BookLevel]:
@@ -65,7 +69,8 @@ class OrderBook(BaseModel):
         elif side == "asks":
             yield from self.asks
         else:
-            raise ValueError("side must be 'bids' or 'asks'")
+            msg = "side must be 'bids' or 'asks'"
+            raise ValueError(msg)
 
     @classmethod
     def from_raw_data(cls, market_id: str, asset_id: str, timestamp: int, hash: str,

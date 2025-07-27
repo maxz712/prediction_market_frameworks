@@ -7,7 +7,7 @@ from .base import PolymarketError
 
 class PolymarketValidationError(PolymarketError):
     """Base exception for validation errors.
-    
+
     This is raised when input data doesn't meet the required format,
     constraints, or business rules.
     """
@@ -20,7 +20,7 @@ class PolymarketValidationError(PolymarketError):
         errors: dict[str, list[str]] | None = None
     ) -> None:
         """Initialize the validation error.
-        
+
         Args:
             message: Human-readable error message
             field: The field that failed validation
@@ -43,7 +43,7 @@ class PolymarketValidationError(PolymarketError):
 
 class PolymarketFieldValidationError(PolymarketValidationError):
     """Exception raised when a specific field fails validation.
-    
+
     This includes:
     - Required fields that are missing
     - Fields with invalid formats
@@ -62,7 +62,7 @@ class PolymarketFieldValidationError(PolymarketValidationError):
 
 class PolymarketTypeValidationError(PolymarketValidationError):
     """Exception raised when a value has the wrong type.
-    
+
     This includes:
     - Strings provided where numbers are expected
     - Invalid enum values
@@ -84,7 +84,7 @@ class PolymarketTypeValidationError(PolymarketValidationError):
 
 class PolymarketRangeValidationError(PolymarketValidationError):
     """Exception raised when a value is outside the allowed range.
-    
+
     This includes:
     - Numbers too large or too small
     - Strings too long or too short
@@ -114,7 +114,7 @@ class PolymarketRangeValidationError(PolymarketValidationError):
 
 class PolymarketRequiredFieldError(PolymarketValidationError):
     """Exception raised when a required field is missing.
-    
+
     This is a specific type of validation error for missing required fields.
     """
 
@@ -125,7 +125,7 @@ class PolymarketRequiredFieldError(PolymarketValidationError):
 
 class PolymarketFormatValidationError(PolymarketValidationError):
     """Exception raised when a value doesn't match the expected format.
-    
+
     This includes:
     - Invalid email addresses
     - Malformed URLs
@@ -151,7 +151,7 @@ class PolymarketFormatValidationError(PolymarketValidationError):
 
 class PolymarketBusinessRuleError(PolymarketValidationError):
     """Exception raised when data violates business rules.
-    
+
     This includes:
     - Invalid trading pairs
     - Insufficient balance for orders

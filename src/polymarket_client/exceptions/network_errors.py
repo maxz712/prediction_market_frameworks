@@ -6,7 +6,7 @@ from .base import PolymarketError
 
 class PolymarketNetworkError(PolymarketError):
     """Base exception for network-related errors.
-    
+
     This is raised when there are issues with network connectivity,
     timeouts, or other transport-level problems.
     """
@@ -18,7 +18,7 @@ class PolymarketNetworkError(PolymarketError):
         endpoint: str | None = None
     ) -> None:
         """Initialize the network error.
-        
+
         Args:
             message: Human-readable error message
             original_error: The underlying network exception
@@ -39,7 +39,7 @@ class PolymarketNetworkError(PolymarketError):
 
 class PolymarketConnectionError(PolymarketNetworkError):
     """Exception raised when connection to the API fails.
-    
+
     This includes:
     - DNS resolution failures
     - Connection refused
@@ -52,7 +52,7 @@ class PolymarketConnectionError(PolymarketNetworkError):
 
 class PolymarketTimeoutError(PolymarketNetworkError):
     """Exception raised when a request times out.
-    
+
     This includes:
     - Connection timeouts
     - Read timeouts
@@ -66,7 +66,7 @@ class PolymarketTimeoutError(PolymarketNetworkError):
         **kwargs
     ) -> None:
         """Initialize the timeout error.
-        
+
         Args:
             message: Error message
             timeout_duration: The timeout duration in seconds
@@ -84,7 +84,7 @@ class PolymarketTimeoutError(PolymarketNetworkError):
 
 class PolymarketSSLError(PolymarketNetworkError):
     """Exception raised for SSL/TLS-related errors.
-    
+
     This includes:
     - Certificate verification failures
     - SSL handshake errors
@@ -97,7 +97,7 @@ class PolymarketSSLError(PolymarketNetworkError):
 
 class PolymarketProxyError(PolymarketNetworkError):
     """Exception raised for proxy-related errors.
-    
+
     This includes:
     - Proxy authentication failures
     - Proxy connection errors
@@ -110,7 +110,7 @@ class PolymarketProxyError(PolymarketNetworkError):
 
 class PolymarketDNSError(PolymarketNetworkError):
     """Exception raised for DNS resolution errors.
-    
+
     This includes:
     - Host not found
     - DNS server failures
