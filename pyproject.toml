@@ -20,28 +20,32 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Office/Business :: Financial :: Investment",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "aiohttp>=3.12.13",
-    "py-clob-client>=0.23.0",
-    "py-order-utils>=0.3.2",
-    "pydantic>=2.0.0",
-    "python-dotenv>=1.1.1",
-    "requests>=2.31.0",
-    "web3>=7.12.0",
+    "aiohttp==3.12.13",
+    "py-clob-client==0.23.0",
+    "py-order-utils==0.3.2",
+    "pydantic==2.10.5",
+    "python-dotenv==1.1.1",
+    "requests==2.32.3",
+    "web3==7.12.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.0.0",
-    "pytest-cov>=4.0.0",
-    "pytest-mock>=3.12.0",
-    "ruff>=0.1.0",
-    "black>=23.0.0",
-    "mypy>=1.7.0",
-    "pre-commit>=3.6.0",
+    "pytest==8.3.4",
+    "pytest-cov==6.0.0",
+    "pytest-mock==3.12.0",
+    "ruff==0.12.2",
+    "black==24.10.0",
+    "mypy==1.13.0",
+    "pre-commit==4.0.1",
+    "bandit[toml]==1.7.10",
+    "safety>=3.2.0,<4.0.0",
+    "pip-audit==2.7.3",
 ]
 
 [tool.uv.workspace]
@@ -70,7 +74,7 @@ markers = [
 # Ruff configuration
 [tool.ruff]
 line-length = 88
-target-version = "py312"
+target-version = "py313"
 respect-gitignore = true
 extend-exclude = ["migrations"]
 
@@ -130,7 +134,7 @@ ignore = [
 # Black configuration
 [tool.black]
 line-length = 88
-target-version = ['py312']
+target-version = ['py312', 'py313']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -187,5 +191,13 @@ exclude_lines = [
 
 [dependency-groups]
 dev = [
-    "ruff>=0.12.2",
+    "ruff==0.12.2",
 ]
+
+# Bandit security configuration
+[tool.bandit]
+exclude_dirs = ["tests", "examples"]
+skips = ["B101"]  # Skip assert_used test
+
+[tool.bandit.assert_used]
+skips = ["*_test.py", "test_*.py"]

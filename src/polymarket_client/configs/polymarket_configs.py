@@ -55,6 +55,12 @@ class PolymarketConfig(BaseModel):
 
     # SDK metadata
     sdk_version: str = Field(default="0.1.0", description="SDK version for User-Agent header")
+    
+    # Enhanced authentication settings
+    enable_signature_validation: bool = Field(default=True, description="Enable request signature validation")
+    signature_method: str = Field(default="hmac", description="Default signature method: 'hmac' or 'eip712'")
+    nonce_tracking_enabled: bool = Field(default=True, description="Enable nonce tracking to prevent replay attacks")
+    max_signature_age_seconds: int = Field(default=300, description="Maximum age for request signatures in seconds")
 
     @field_validator("api_key", "api_secret", "api_passphrase", "pk")
     @classmethod

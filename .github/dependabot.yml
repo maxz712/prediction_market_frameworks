@@ -1,0 +1,70 @@
+# Dependabot configuration for automated dependency updates
+# See https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "xinmingzhang"  # Replace with actual maintainer username
+    assignees:
+      - "xinmingzhang"  # Replace with actual maintainer username
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    # Group related updates together
+    groups:
+      testing:
+        patterns:
+          - "pytest*"
+          - "*test*"
+      linting:
+        patterns:
+          - "ruff"
+          - "black"
+          - "mypy"
+          - "pre-commit"
+      security:
+        patterns:
+          - "bandit*"
+          - "safety"
+          - "pip-audit"
+      core-deps:
+        patterns:
+          - "pydantic"
+          - "requests"
+          - "aiohttp"
+          - "web3"
+          - "py-*"
+    # Allow both patch and minor version updates
+    versioning-strategy: increase
+    # Ignore major version updates for critical dependencies
+    ignore:
+      - dependency-name: "pydantic"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "web3"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "py-clob-client"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "xinmingzhang"  # Replace with actual maintainer username
+    commit-message:
+      prefix: "ci"
+      include: "scope"

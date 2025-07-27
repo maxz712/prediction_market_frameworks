@@ -1,3 +1,4 @@
+from .auth import AuthMiddleware, RequestSigner, SignatureValidator
 from .configs.polymarket_configs import PolymarketConfig
 from .exceptions import (
     PolymarketAPIError,
@@ -77,6 +78,8 @@ __all__ = [
     # Data models
     "Activity",
     "ActivityMarket",
+    # Authentication
+    "AuthMiddleware",
     "BookLevel",
     "CancelResponse",
     "ClobReward",
@@ -134,6 +137,8 @@ __all__ = [
     # Rate limiting
     "RateLimitError",
     "RateLimitedHTTPAdapter",
+    "RequestSigner",
+    "SignatureValidator",
     "SlidingWindowRateLimiter",
     "Tag",
     "TokenBucketRateLimiter",

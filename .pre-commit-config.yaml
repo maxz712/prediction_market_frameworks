@@ -1,0 +1,64 @@
+# Pre-commit hooks configuration for polymarket-client
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+
+repos:
+  # Pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: debug-statements
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # Ruff for linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.2
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # MyPy for type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-requests
+          - pydantic
+        args: [--config-file=pyproject.toml]
+
+  # Security scanning with bandit
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: [-c, pyproject.toml]
+        additional_dependencies: ["bandit[toml]"]
+
+
+  # Check dependencies for known vulnerabilities
+  - repo: local
+    hooks:
+      - id: pip-audit
+        name: pip-audit
+        entry: /Users/xinmingzhang/.local/bin/pip-audit
+        language: system
+        types: [python]
+        require_serial: true
+        pass_filenames: false
+
+# Global configuration
+ci:
+  autofix_prs: true
+  autoupdate_schedule: weekly
+  skip: [pip-audit]  # Skip pip-audit in CI as it requires network access
