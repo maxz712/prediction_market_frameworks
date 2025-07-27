@@ -34,7 +34,7 @@ class TestPolymarketExceptions:
             "API error",
             status_code=400,
             response_data=response_data,
-            request_id="req_123"
+            request_id="req_123",
         )
 
         assert "API error" in str(error)
@@ -74,7 +74,7 @@ class TestPolymarketExceptions:
             PolymarketValidationError("test"),
             PolymarketRateLimitError("test"),
             PolymarketAuthenticationError("test"),
-            PolymarketNotFoundError("test")
+            PolymarketNotFoundError("test"),
         ]
 
         for exc in exceptions:

@@ -6,14 +6,18 @@ from .order import Order
 class OrderResponse(BaseModel):
     """Response model for order submission."""
 
-    success: bool = Field(..., description="Whether the order was submitted successfully")
+    success: bool = Field(
+        ..., description="Whether the order was submitted successfully"
+    )
     order_id: str | None = Field(None, description="Unique order identifier")
     order: Order | None = Field(None, description="Full order details if available")
     message: str | None = Field(None, description="Response message")
     error: str | None = Field(None, description="Error message if submission failed")
 
     # Transaction details
-    transaction_hash: str | None = Field(None, description="Blockchain transaction hash")
+    transaction_hash: str | None = Field(
+        None, description="Blockchain transaction hash"
+    )
     gas_used: int | None = Field(None, description="Gas used for the transaction")
 
     # Market details
@@ -26,7 +30,9 @@ class OrderResponse(BaseModel):
         # Handle different response formats from the API
         if isinstance(raw_response, dict):
             success = raw_response.get("success", True)
-            order_id = raw_response.get("orderID", raw_response.get("order_id", raw_response.get("id")))
+            order_id = raw_response.get(
+                "orderID", raw_response.get("order_id", raw_response.get("id"))
+            )
 
             # Try to extract order details if present
             order = None
@@ -43,10 +49,12 @@ class OrderResponse(BaseModel):
                 order=order,
                 message=raw_response.get("message"),
                 error=raw_response.get("error"),
-                transaction_hash=raw_response.get("txhash", raw_response.get("transaction_hash")),
+                transaction_hash=raw_response.get(
+                    "txhash", raw_response.get("transaction_hash")
+                ),
                 gas_used=raw_response.get("gas_used"),
                 market_id=raw_response.get("market_id", raw_response.get("market")),
-                token_id=raw_response.get("token_id", raw_response.get("asset_id"))
+                token_id=raw_response.get("token_id", raw_response.get("asset_id")),
             )
 
         # Handle unexpected response format
@@ -59,7 +67,7 @@ class OrderResponse(BaseModel):
             transaction_hash=None,
             gas_used=None,
             market_id=None,
-            token_id=None
+            token_id=None,
         )
 
     @property

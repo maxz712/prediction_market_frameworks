@@ -1,4 +1,5 @@
 """Input sanitization utilities for Polymarket client."""
+
 import re
 from typing import Any
 
@@ -134,9 +135,7 @@ class InputSanitizer:
         return slug.lower()
 
     @classmethod
-    def sanitize_slug_list(
-        cls, slugs: str | list[str] | None
-    ) -> list[str] | None:
+    def sanitize_slug_list(cls, slugs: str | list[str] | None) -> list[str] | None:
         """Sanitize list of slugs.
 
         Args:
@@ -312,8 +311,7 @@ class InputSanitizer:
 
         if isinstance(data, dict):
             return {
-                key: cls.sanitize_response_data(value)
-                for key, value in data.items()
+                key: cls.sanitize_response_data(value) for key, value in data.items()
             }
 
         if isinstance(data, list):

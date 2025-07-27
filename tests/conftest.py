@@ -19,11 +19,11 @@ def test_config():
             "gamma": "https://test-gamma.example.com",
             "clob": "https://test-clob.example.com",
             "info": "https://test-info.example.com",
-            "neg_risk": "https://test-neg-risk.example.com"
+            "neg_risk": "https://test-neg-risk.example.com",
         },
         chain_id=137,
         timeout=30,
-        max_retries=3
+        max_retries=3,
     )
 
 
@@ -64,7 +64,7 @@ def sample_event_data():
         "pendingDeployment": False,
         "deploying": False,
         "tags": [],
-        "markets": []
+        "markets": [],
     }
 
 
@@ -97,25 +97,11 @@ def sample_market_data():
         "neg_risk_request_id": "",
         "icon": "https://example.com/icon.png",
         "image": "https://example.com/image.png",
-        "rewards": {
-            "rates": None,
-            "min_size": 1,
-            "max_spread": 0.1
-        },
+        "rewards": {"rates": None, "min_size": 1, "max_spread": 0.1},
         "is_50_50_outcome": True,
         "tokens": [
-            {
-                "token_id": "token1",
-                "outcome": "Yes",
-                "price": 0.5,
-                "winner": False
-            },
-            {
-                "token_id": "token2",
-                "outcome": "No",
-                "price": 0.5,
-                "winner": False
-            }
+            {"token_id": "token1", "outcome": "Yes", "price": 0.5, "winner": False},
+            {"token_id": "token2", "outcome": "No", "price": 0.5, "winner": False},
         ],
-        "tags": []
+        "tags": [],
     }

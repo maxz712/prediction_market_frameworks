@@ -1,8 +1,7 @@
 import time
-from typing import Any, Callable, Dict, Optional, Set
+from collections.abc import Callable
 
 import requests
-from requests.adapters import HTTPAdapter
 from requests.auth import AuthBase
 
 from .request_signer import RequestSigner
@@ -17,19 +16,19 @@ class PolymarketAuth(AuthBase):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        api_secret: Optional[str] = None,
-        api_passphrase: Optional[str] = None,
-        private_key: Optional[str] = None,
+        api_key: str | None = None,
+        api_secret: str | None = None,
+        api_passphrase: str | None = None,
+        private_key: str | None = None,
         chain_id: int = 137,
-        signature_method: str = "hmac"
+        signature_method: str = "hmac",
     ) -> None:
         """
         Initialize the authentication handler.
 
         Args:
             api_key: CLOB API key
-            api_secret: CLOB API secret  
+            api_secret: CLOB API secret
             api_passphrase: CLOB API passphrase
             private_key: Ethereum private key
             chain_id: Blockchain chain ID
@@ -40,7 +39,7 @@ class PolymarketAuth(AuthBase):
             api_secret=api_secret,
             api_passphrase=api_passphrase,
             private_key=private_key,
-            chain_id=chain_id
+            chain_id=chain_id,
         )
         self.signature_method = signature_method
 
@@ -58,7 +57,7 @@ class PolymarketAuth(AuthBase):
             self._sign_hmac(request)
         elif self.signature_method == "eip712":
             self._sign_eip712(request)
-        
+
         return request
 
     def _sign_hmac(self, request: requests.PreparedRequest) -> None:
@@ -66,9 +65,9 @@ class PolymarketAuth(AuthBase):
         method = request.method or "GET"
         path = request.path_url or "/"
         body = request.body or ""
-        
+
         if isinstance(body, bytes):
-            body = body.decode('utf-8')
+            body = body.decode("utf-8")
 
         headers = self.signer.sign_request_hmac(method, path, body)
         request.headers.update(headers)
@@ -81,19 +80,19 @@ class PolymarketAuth(AuthBase):
 
         timestamp = str(int(time.time()))
         nonce = int(time.time() * 1000000)
-        
+
         signature = self.signer.create_auth_signature(
-            self.signer.account.address,
-            timestamp,
-            nonce
+            self.signer.account.address, timestamp, nonce
         )
-        
-        request.headers.update({
-            "POLY_ADDRESS": self.signer.account.address,
-            "POLY_SIGNATURE": signature,
-            "POLY_TIMESTAMP": timestamp,
-            "POLY_NONCE": str(nonce)
-        })
+
+        request.headers.update(
+            {
+                "POLY_ADDRESS": self.signer.account.address,
+                "POLY_SIGNATURE": signature,
+                "POLY_TIMESTAMP": timestamp,
+                "POLY_NONCE": str(nonce),
+            }
+        )
 
 
 class AuthMiddleware:
@@ -104,9 +103,9 @@ class AuthMiddleware:
 
     def __init__(
         self,
-        validator: Optional[SignatureValidator] = None,
+        validator: SignatureValidator | None = None,
         max_timestamp_age: int = 300,
-        enable_nonce_tracking: bool = True
+        enable_nonce_tracking: bool = True,
     ) -> None:
         """
         Initialize the authentication middleware.
@@ -119,12 +118,10 @@ class AuthMiddleware:
         self.validator = validator or SignatureValidator()
         self.max_timestamp_age = max_timestamp_age
         self.enable_nonce_tracking = enable_nonce_tracking
-        self.used_nonces: Set[int] = set()
+        self.used_nonces: set[int] = set()
 
     def validate_request(
-        self,
-        request: requests.PreparedRequest,
-        api_secret: Optional[str] = None
+        self, request: requests.PreparedRequest, api_secret: str | None = None
     ) -> bool:
         """
         Validate an incoming request's authentication.
@@ -137,42 +134,42 @@ class AuthMiddleware:
             True if request is valid, False otherwise
         """
         headers = dict(request.headers)
-        
+
         # Check for HMAC authentication
         if self._has_hmac_headers(headers):
             return self._validate_hmac_request(request, headers, api_secret)
-        
+
         # Check for EIP-712 authentication
         if self._has_eip712_headers(headers):
             return self._validate_eip712_request(request, headers)
-        
+
         return False
 
-    def _has_hmac_headers(self, headers: Dict[str, str]) -> bool:
+    def _has_hmac_headers(self, headers: dict[str, str]) -> bool:
         """Check if request has HMAC authentication headers."""
         required_headers = {
             "L2-API-KEY",
             "L2-API-SIGNATURE",
             "L2-API-TIMESTAMP",
-            "L2-API-PASSPHRASE"
+            "L2-API-PASSPHRASE",
         }
         return all(header in headers for header in required_headers)
 
-    def _has_eip712_headers(self, headers: Dict[str, str]) -> bool:
+    def _has_eip712_headers(self, headers: dict[str, str]) -> bool:
         """Check if request has EIP-712 authentication headers."""
         required_headers = {
             "POLY_ADDRESS",
-            "POLY_SIGNATURE", 
+            "POLY_SIGNATURE",
             "POLY_TIMESTAMP",
-            "POLY_NONCE"
+            "POLY_NONCE",
         }
         return all(header in headers for header in required_headers)
 
     def _validate_hmac_request(
         self,
         request: requests.PreparedRequest,
-        headers: Dict[str, str],
-        api_secret: Optional[str]
+        headers: dict[str, str],
+        api_secret: str | None,
     ) -> bool:
         """Validate HMAC-signed request."""
         if not api_secret:
@@ -188,18 +185,16 @@ class AuthMiddleware:
         method = request.method or "GET"
         path = request.path_url or "/"
         body = request.body or ""
-        
+
         if isinstance(body, bytes):
-            body = body.decode('utf-8')
+            body = body.decode("utf-8")
 
         return self.validator.validate_hmac_signature(
             signature, api_secret, method, path, body, timestamp
         )
 
     def _validate_eip712_request(
-        self,
-        request: requests.PreparedRequest,
-        headers: Dict[str, str]
+        self, request: requests.PreparedRequest, headers: dict[str, str]
     ) -> bool:
         """Validate EIP-712-signed request."""
         # Validate address format
@@ -226,18 +221,18 @@ class AuthMiddleware:
         # Validate signature
         signature = headers.get("POLY_SIGNATURE", "")
         message = "This message attests that I control the given wallet"
-        
+
         return self.validator.validate_eip712_signature(
             signature, address, message, nonce, timestamp
         )
 
     def create_auth_session(
         self,
-        api_key: Optional[str] = None,
-        api_secret: Optional[str] = None,
-        api_passphrase: Optional[str] = None,
-        private_key: Optional[str] = None,
-        signature_method: str = "hmac"
+        api_key: str | None = None,
+        api_secret: str | None = None,
+        api_passphrase: str | None = None,
+        private_key: str | None = None,
+        signature_method: str = "hmac",
     ) -> requests.Session:
         """
         Create a requests session with authentication.
@@ -253,28 +248,30 @@ class AuthMiddleware:
             Configured requests session
         """
         session = requests.Session()
-        
+
         # Add authentication
         session.auth = PolymarketAuth(
             api_key=api_key,
             api_secret=api_secret,
             api_passphrase=api_passphrase,
             private_key=private_key,
-            signature_method=signature_method
+            signature_method=signature_method,
         )
-        
+
         # Add default headers
-        session.headers.update({
-            "Content-Type": "application/json",
-            "User-Agent": "polymarket-client-python/1.0.0"
-        })
-        
+        session.headers.update(
+            {
+                "Content-Type": "application/json",
+                "User-Agent": "polymarket-client-python/1.0.0",
+            }
+        )
+
         return session
 
     def add_request_hook(
         self,
         session: requests.Session,
-        hook_func: Callable[[requests.PreparedRequest], None]
+        hook_func: Callable[[requests.PreparedRequest], None],
     ) -> None:
         """
         Add a request hook to a session.
@@ -283,6 +280,7 @@ class AuthMiddleware:
             session: Session to add hook to
             hook_func: Function to call on each request
         """
+
         def request_hook(request: requests.PreparedRequest, *args, **kwargs):
             hook_func(request)
             return request
@@ -290,9 +288,7 @@ class AuthMiddleware:
         session.hooks["request"] = [request_hook]
 
     def add_response_hook(
-        self,
-        session: requests.Session,
-        hook_func: Callable[[requests.Response], None]
+        self, session: requests.Session, hook_func: Callable[[requests.Response], None]
     ) -> None:
         """
         Add a response hook to a session.
@@ -301,6 +297,7 @@ class AuthMiddleware:
             session: Session to add hook to
             hook_func: Function to call on each response
         """
+
         def response_hook(response: requests.Response, *args, **kwargs):
             hook_func(response)
             return response
@@ -319,9 +316,6 @@ class AuthMiddleware:
 
         current_time = int(time.time() * 1000000)
         cutoff_time = current_time - (max_age_seconds * 1000000)
-        
+
         # Remove nonces older than cutoff
-        self.used_nonces = {
-            nonce for nonce in self.used_nonces
-            if nonce > cutoff_time
-        }
+        self.used_nonces = {nonce for nonce in self.used_nonces if nonce > cutoff_time}

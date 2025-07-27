@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 T = TypeVar("T")
 
+
 class PaginationInfo(BaseModel):
     """Pagination metadata for API responses."""
 
@@ -20,18 +21,20 @@ class PaginationInfo(BaseModel):
         return (self.page - 1) * self.per_page
 
     @classmethod
-    def from_offset(cls, offset: int, limit: int, total_returned: int, requested_limit: int) -> "PaginationInfo":
+    def from_offset(
+        cls, offset: int, limit: int, total_returned: int, requested_limit: int
+    ) -> "PaginationInfo":
         """Create pagination info from offset-based parameters."""
         page = (offset // limit) + 1
-        has_next = total_returned == requested_limit  # If we got exactly what we asked for, there might be more
+        has_next = (
+            total_returned == requested_limit
+        )  # If we got exactly what we asked for, there might be more
         has_previous = offset > 0
 
         return cls(
-            page=page,
-            per_page=limit,
-            has_next=has_next,
-            has_previous=has_previous
+            page=page, per_page=limit, has_next=has_next, has_previous=has_previous
         )
+
 
 class PaginatedResponse[T](BaseModel):
     """Generic paginated response wrapper."""

@@ -205,6 +205,7 @@ class TestSetupLogging:
         # Add our test handler
         handler = logging.StreamHandler(log_output)
         from polymarket_client.logger import StructuredFormatter
+
         handler.setFormatter(StructuredFormatter())
         logger.addHandler(handler)
 

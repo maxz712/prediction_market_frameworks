@@ -58,7 +58,7 @@ class TestClobClient:
             key=test_config.pk,
             chain_id=test_config.chain_id,
             signature_type=1,
-            funder=test_config.wallet_proxy_address
+            funder=test_config.wallet_proxy_address,
         )
         mock_client_instance.set_api_creds.assert_called_once()
         mock_client_instance.create_or_derive_api_creds.assert_called_once()
@@ -83,12 +83,15 @@ class TestClobClient:
         assert isinstance(client, ClobClient)
         assert client.config.api_key == test_config.api_key
 
-    @patch.dict("os.environ", {
-        "POLYMARKET_API_KEY": "test_key",
-        "POLYMARKET_API_SECRET": "test_secret",
-        "POLYMARKET_API_PASSPHRASE": "test_passphrase",
-        "POLYMARKET_PRIVATE_KEY": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "POLYMARKET_API_KEY": "test_key",
+            "POLYMARKET_API_SECRET": "test_secret",
+            "POLYMARKET_API_PASSPHRASE": "test_passphrase",
+            "POLYMARKET_PRIVATE_KEY": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        },
+    )
     @patch("polymarket_client.clob_client.PyClobClient")
     def test_from_env(self, mock_py_clob_client):
         """Test from_env factory method."""
@@ -151,7 +154,9 @@ class TestClobClient:
     def test_post_order(self, mock_py_clob_client, test_config):
         """Test post_order method."""
         mock_client_instance = Mock()
-        mock_client_instance.create_and_post_order.return_value = {"order_id": "test_order"}
+        mock_client_instance.create_and_post_order.return_value = {
+            "order_id": "test_order"
+        }
         mock_py_clob_client.return_value = mock_client_instance
 
         client = ClobClient(test_config)
@@ -159,7 +164,7 @@ class TestClobClient:
             "token_id": "test_token",
             "price": 0.5,
             "size": 100.0,
-            "side": "BUY"
+            "side": "BUY",
         }
 
         result = client.post_order(order_args)
@@ -225,7 +230,9 @@ class TestClobClient:
         mock_client_instance.get_trades.assert_called_once()
 
     @patch("polymarket_client.clob_client.PyClobClient")
-    def test_get_user_market_trades_history_with_error(self, mock_py_clob_client, test_config):
+    def test_get_user_market_trades_history_with_error(
+        self, mock_py_clob_client, test_config
+    ):
         """Test get_user_market_trades_history method handles errors gracefully."""
         mock_client_instance = Mock()
         mock_client_instance.get_trades.side_effect = Exception("API Error")
@@ -256,13 +263,17 @@ class TestClobClient:
 
     @patch("polymarket_client.clob_client.PyClobClient")
     @patch("polymarket_client.clob_client.requests.Session.get")
-    def test_get_user_positions_http_error(self, mock_get, mock_py_clob_client, test_config):
+    def test_get_user_positions_http_error(
+        self, mock_get, mock_py_clob_client, test_config
+    ):
         """Test get_user_positions method with HTTP error."""
         mock_client_instance = Mock()
         mock_py_clob_client.return_value = mock_client_instance
 
         mock_response = Mock()
-        mock_response.raise_for_status.side_effect = requests.HTTPError("400 Bad Request")
+        mock_response.raise_for_status.side_effect = requests.HTTPError(
+            "400 Bad Request"
+        )
         mock_get.return_value = mock_response
 
         client = ClobClient(test_config)
@@ -288,7 +299,7 @@ class TestClobClient:
             limit=50,
             market="test_market",
             activity_type="TRADE",
-            side="BUY"
+            side="BUY",
         )
 
         assert isinstance(result, UserActivity)
@@ -305,7 +316,9 @@ class TestClobClient:
 
     @patch("polymarket_client.clob_client.PyClobClient")
     @patch("polymarket_client.clob_client.requests.Session.get")
-    def test_get_user_activity_with_limit_capping(self, mock_get, mock_py_clob_client, test_config):
+    def test_get_user_activity_with_limit_capping(
+        self, mock_get, mock_py_clob_client, test_config
+    ):
         """Test get_user_activity method caps limit at 500."""
         mock_client_instance = Mock()
         mock_py_clob_client.return_value = mock_client_instance
@@ -347,7 +360,7 @@ class TestClobClient:
                 end=None,
                 side=None,
                 sort_by="TIMESTAMP",
-                sort_direction="DESC"
+                sort_direction="DESC",
             )
 
     @patch("polymarket_client.clob_client.PyClobClient")
@@ -381,7 +394,7 @@ class TestClobClient:
             price=0.5,
             size=100.0,
             side=OrderSide.BUY,
-            order_type=PMOrderType.GTC
+            order_type=PMOrderType.GTC,
         )
 
         result = client.submit_limit_order(request)
@@ -391,7 +404,9 @@ class TestClobClient:
         mock_client_instance.post_order.assert_called_once()
 
     @patch("polymarket_client.clob_client.PyClobClient")
-    def test_submit_limit_order_gtd_with_expiration(self, mock_py_clob_client, test_config):
+    def test_submit_limit_order_gtd_with_expiration(
+        self, mock_py_clob_client, test_config
+    ):
         """Test submit_limit_order method with GTD order and expiration."""
         mock_client_instance = Mock()
         mock_order = Mock()
@@ -407,7 +422,7 @@ class TestClobClient:
             size=100.0,
             side=OrderSide.BUY,
             order_type=PMOrderType.GTD,
-            expires_at=expiration_time
+            expires_at=expiration_time,
         )
 
         result = client.submit_limit_order(request)
@@ -415,7 +430,9 @@ class TestClobClient:
         assert isinstance(result, OrderResponse)
 
     @patch("polymarket_client.clob_client.PyClobClient")
-    def test_submit_limit_order_gtd_without_expiration_raises_error(self, mock_py_clob_client, test_config):
+    def test_submit_limit_order_gtd_without_expiration_raises_error(
+        self, mock_py_clob_client, test_config
+    ):
         """Test submit_limit_order method with GTD order but no expiration raises error."""
         mock_client_instance = Mock()
         mock_py_clob_client.return_value = mock_client_instance
@@ -426,7 +443,7 @@ class TestClobClient:
             price=0.5,
             size=100.0,
             side=OrderSide.BUY,
-            order_type=PMOrderType.GTD  # No expires_at set
+            order_type=PMOrderType.GTD,  # No expires_at set
         )
 
         with pytest.raises(ValueError, match="expires_at must be set for GTD orders"):
@@ -489,15 +506,17 @@ class TestClobClient:
             client.get_current_user_position(market="test_market")
 
             mock_get_position.assert_called_once_with(
-                proxy_wallet_address="0xcurrent_user",
-                market="test_market"
+                proxy_wallet_address="0xcurrent_user", market="test_market"
             )
 
     @patch("polymarket_client.clob_client.PyClobClient")
     def test_get_balance_allowance_collateral(self, mock_py_clob_client, test_config):
         """Test get_balance_allowance method for collateral."""
         mock_client_instance = Mock()
-        mock_client_instance.get_balance_allowance.return_value = {"balance": "1000", "allowance": "500"}
+        mock_client_instance.get_balance_allowance.return_value = {
+            "balance": "1000",
+            "allowance": "500",
+        }
         mock_py_clob_client.return_value = mock_client_instance
 
         client = ClobClient(test_config)
@@ -510,7 +529,10 @@ class TestClobClient:
     def test_get_balance_allowance_conditional(self, mock_py_clob_client, test_config):
         """Test get_balance_allowance method for conditional tokens."""
         mock_client_instance = Mock()
-        mock_client_instance.get_balance_allowance.return_value = {"balance": "100", "allowance": "50"}
+        mock_client_instance.get_balance_allowance.return_value = {
+            "balance": "100",
+            "allowance": "50",
+        }
         mock_py_clob_client.return_value = mock_client_instance
 
         client = ClobClient(test_config)
@@ -523,7 +545,10 @@ class TestClobClient:
     def test_update_balance_allowance(self, mock_py_clob_client, test_config):
         """Test update_balance_allowance method."""
         mock_client_instance = Mock()
-        mock_client_instance.update_balance_allowance.return_value = {"balance": "1200", "allowance": "600"}
+        mock_client_instance.update_balance_allowance.return_value = {
+            "balance": "1200",
+            "allowance": "600",
+        }
         mock_py_clob_client.return_value = mock_client_instance
 
         client = ClobClient(test_config)
@@ -536,7 +561,10 @@ class TestClobClient:
     def test_get_usdc_balance_allowance(self, mock_py_clob_client, test_config):
         """Test get_usdc_balance_allowance convenience method."""
         mock_client_instance = Mock()
-        mock_client_instance.get_balance_allowance.return_value = {"balance": "1000", "allowance": "500"}
+        mock_client_instance.get_balance_allowance.return_value = {
+            "balance": "1000",
+            "allowance": "500",
+        }
         mock_py_clob_client.return_value = mock_client_instance
 
         client = ClobClient(test_config)
@@ -548,7 +576,10 @@ class TestClobClient:
     def test_update_usdc_balance_allowance(self, mock_py_clob_client, test_config):
         """Test update_usdc_balance_allowance convenience method."""
         mock_client_instance = Mock()
-        mock_client_instance.update_balance_allowance.return_value = {"balance": "1200", "allowance": "600"}
+        mock_client_instance.update_balance_allowance.return_value = {
+            "balance": "1200",
+            "allowance": "600",
+        }
         mock_py_clob_client.return_value = mock_client_instance
 
         client = ClobClient(test_config)
@@ -557,7 +588,9 @@ class TestClobClient:
         assert result == {"balance": "1200", "allowance": "600"}
 
     @patch("polymarket_client.clob_client.PyClobClient")
-    def test_check_usdc_allowance_sufficient_true(self, mock_py_clob_client, test_config):
+    def test_check_usdc_allowance_sufficient_true(
+        self, mock_py_clob_client, test_config
+    ):
         """Test check_usdc_allowance_sufficient returns True when sufficient."""
         mock_client_instance = Mock()
         mock_client_instance.get_balance_allowance.return_value = {"allowance": "1000"}
@@ -569,7 +602,9 @@ class TestClobClient:
         assert result is True
 
     @patch("polymarket_client.clob_client.PyClobClient")
-    def test_check_usdc_allowance_sufficient_false(self, mock_py_clob_client, test_config):
+    def test_check_usdc_allowance_sufficient_false(
+        self, mock_py_clob_client, test_config
+    ):
         """Test check_usdc_allowance_sufficient returns False when insufficient."""
         mock_client_instance = Mock()
         mock_client_instance.get_balance_allowance.return_value = {"allowance": "100"}
@@ -581,7 +616,9 @@ class TestClobClient:
         assert result is False
 
     @patch("polymarket_client.clob_client.PyClobClient")
-    def test_check_usdc_allowance_sufficient_error_handling(self, mock_py_clob_client, test_config):
+    def test_check_usdc_allowance_sufficient_error_handling(
+        self, mock_py_clob_client, test_config
+    ):
         """Test check_usdc_allowance_sufficient handles errors gracefully."""
         mock_client_instance = Mock()
         mock_client_instance.get_balance_allowance.side_effect = Exception("API Error")
@@ -610,7 +647,7 @@ class TestClobClient:
             start_ts=1640995200,
             end_ts=1641081600,
             interval="1h",
-            fidelity=60
+            fidelity=60,
         )
 
         assert isinstance(result, PricesHistory)
@@ -627,7 +664,9 @@ class TestClobClient:
 
     @patch("polymarket_client.clob_client.PyClobClient")
     @patch("polymarket_client.clob_client.requests.Session.get")
-    def test_get_prices_history_minimal_params(self, mock_get, mock_py_clob_client, test_config):
+    def test_get_prices_history_minimal_params(
+        self, mock_get, mock_py_clob_client, test_config
+    ):
         """Test get_prices_history method with minimal parameters."""
         mock_client_instance = Mock()
         mock_py_clob_client.return_value = mock_client_instance
@@ -672,13 +711,17 @@ class TestClobClient:
 
     @patch("polymarket_client.clob_client.PyClobClient")
     @patch("polymarket_client.clob_client.requests.Session.get")
-    def test_get_prices_history_http_error(self, mock_get, mock_py_clob_client, test_config):
+    def test_get_prices_history_http_error(
+        self, mock_get, mock_py_clob_client, test_config
+    ):
         """Test get_prices_history method with HTTP error."""
         mock_client_instance = Mock()
         mock_py_clob_client.return_value = mock_client_instance
 
         mock_response = Mock()
-        mock_response.raise_for_status.side_effect = requests.HTTPError("500 Server Error")
+        mock_response.raise_for_status.side_effect = requests.HTTPError(
+            "500 Server Error"
+        )
         mock_get.return_value = mock_response
 
         client = ClobClient(test_config)

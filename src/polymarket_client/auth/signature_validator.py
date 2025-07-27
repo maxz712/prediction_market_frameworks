@@ -1,7 +1,6 @@
 import hashlib
 import hmac
 import time
-from typing import Dict, Optional
 
 
 class SignatureValidator:
@@ -26,7 +25,7 @@ class SignatureValidator:
         method: str,
         path: str,
         body: str,
-        timestamp: str
+        timestamp: str,
     ) -> bool:
         """
         Validate an HMAC signature for API key authentication.
@@ -45,12 +44,10 @@ class SignatureValidator:
         try:
             # Recreate the message that should have been signed
             message = f"{timestamp}{method.upper()}{path}{body}"
-            
+
             # Generate expected signature
             expected_signature = hmac.new(
-                api_secret.encode('utf-8'),
-                message.encode('utf-8'),
-                hashlib.sha256
+                api_secret.encode("utf-8"), message.encode("utf-8"), hashlib.sha256
             ).hexdigest()
 
             # Compare signatures using constant time comparison
@@ -58,11 +55,7 @@ class SignatureValidator:
         except Exception:
             return False
 
-    def validate_timestamp(
-        self,
-        timestamp: str,
-        max_age_seconds: int = 300
-    ) -> bool:
+    def validate_timestamp(self, timestamp: str, max_age_seconds: int = 300) -> bool:
         """
         Validate that a timestamp is recent enough.
 
@@ -77,17 +70,14 @@ class SignatureValidator:
             request_time = int(timestamp)
             current_time = int(time.time())
             age = current_time - request_time
-            
+
             # Check if timestamp is not too old and not in the future
             return 0 <= age <= max_age_seconds
         except (ValueError, TypeError):
             return False
 
     def validate_nonce(
-        self,
-        nonce: int,
-        used_nonces: set,
-        max_nonce_age_seconds: int = 3600
+        self, nonce: int, used_nonces: set, max_nonce_age_seconds: int = 3600
     ) -> bool:
         """
         Validate that a nonce hasn't been used before and isn't too old.
@@ -103,17 +93,15 @@ class SignatureValidator:
         # Check if nonce was already used
         if nonce in used_nonces:
             return False
-        
+
         # Check if nonce is not too old (assuming nonce is timestamp-based)
         current_time = int(time.time() * 1000000)  # Microseconds
         nonce_age = (current_time - nonce) / 1000000  # Convert to seconds
-        
+
         return 0 <= nonce_age <= max_nonce_age_seconds
 
     def validate_request_headers(
-        self,
-        headers: Dict[str, str],
-        required_headers: Optional[set] = None
+        self, headers: dict[str, str], required_headers: set | None = None
     ) -> bool:
         """
         Validate that all required authentication headers are present.
@@ -128,11 +116,11 @@ class SignatureValidator:
         if required_headers is None:
             required_headers = {
                 "L2-API-KEY",
-                "L2-API-SIGNATURE", 
+                "L2-API-SIGNATURE",
                 "L2-API-TIMESTAMP",
-                "L2-API-PASSPHRASE"
+                "L2-API-PASSPHRASE",
             }
-        
+
         return all(header in headers for header in required_headers)
 
     def validate_api_key_format(self, api_key: str) -> bool:
@@ -147,9 +135,9 @@ class SignatureValidator:
         """
         # Basic validation - adjust based on actual Polymarket API key format
         return (
-            isinstance(api_key, str) and
-            len(api_key) >= 32 and
-            all(c.isalnum() or c in '-_' for c in api_key)
+            isinstance(api_key, str)
+            and len(api_key) >= 32
+            and all(c.isalnum() or c in "-_" for c in api_key)
         )
 
     def validate_signature_format(self, signature: str) -> bool:
@@ -164,9 +152,9 @@ class SignatureValidator:
         """
         try:
             # Remove 0x prefix if present
-            if signature.startswith('0x'):
+            if signature.startswith("0x"):
                 signature = signature[2:]
-            
+
             # Check if it's valid hex and proper length
             int(signature, 16)
             return len(signature) in [64, 128, 130]  # Different signature lengths
@@ -185,14 +173,14 @@ class SignatureValidator:
         """
         try:
             # Basic Ethereum address validation
-            if not address.startswith('0x'):
+            if not address.startswith("0x"):
                 return False
-            
+
             # Check length and hex format
             address_hex = address[2:]
             if len(address_hex) != 40:
                 return False
-            
+
             int(address_hex, 16)
             return True
         except ValueError:

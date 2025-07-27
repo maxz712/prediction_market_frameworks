@@ -16,21 +16,13 @@ def main():
     """Demonstrate logging setup and usage."""
 
     # Example 1: Setup structured JSON logging
-    setup_logging(
-        level="INFO",
-        format_type="structured",
-        enable_console=True
-    )
+    setup_logging(level="INFO", format_type="structured", enable_console=True)
 
     logger = get_logger("example")
     logger.info("Client initialized with structured logging")
 
     # Example 2: Setup simple human-readable logging
-    setup_logging(
-        level="DEBUG",
-        format_type="simple",
-        enable_console=True
-    )
+    setup_logging(level="DEBUG", format_type="simple", enable_console=True)
 
     logger = get_logger("example")
     logger.debug("Debug message with simple format")
@@ -42,7 +34,7 @@ def main():
         level="INFO",
         format_type="structured",
         enable_console=True,
-        log_file="polymarket_client.log"
+        log_file="polymarket_client.log",
     )
 
     logger = get_logger("example")
@@ -56,17 +48,14 @@ def main():
         extra={
             "market_id": "0x1234567890abcdef",
             "analysis_type": "price_trend",
-            "time_period": "24h"
-        }
+            "time_period": "24h",
+        },
     )
 
     # Simulate an API call
     logger.info(
         "Fetching market data",
-        extra={
-            "endpoint": "/events",
-            "filters": {"active": True, "limit": 50}
-        }
+        extra={"endpoint": "/events", "filters": {"active": True, "limit": 50}},
     )
 
     # Simulate order placement
@@ -77,8 +66,8 @@ def main():
             "side": "BUY",
             "size": "100.0",
             "price": "0.55",
-            "market": "presidential-election-2024"
-        }
+            "market": "presidential-election-2024",
+        },
     )
 
     # Simulate error handling
@@ -89,13 +78,9 @@ def main():
     except ValueError as e:
         logger.error(
             "Order placement failed",
-            extra={
-                "error_type": "validation_error",
-                "error_details": str(e)
-            },
-            exc_info=True
+            extra={"error_type": "validation_error", "error_details": str(e)},
+            exc_info=True,
         )
-
 
 
 if __name__ == "__main__":

@@ -27,9 +27,15 @@ class PricesHistory(BaseModel):
     fidelity: int | None = None
 
     @classmethod
-    def from_raw_data(cls, raw_data: dict[str, Any], market: str | None = None,
-                     start_ts: int | None = None, end_ts: int | None = None,
-                     interval: str | None = None, fidelity: int | None = None) -> "PricesHistory":
+    def from_raw_data(
+        cls,
+        raw_data: dict[str, Any],
+        market: str | None = None,
+        start_ts: int | None = None,
+        end_ts: int | None = None,
+        interval: str | None = None,
+        fidelity: int | None = None,
+    ) -> "PricesHistory":
         """Create PricesHistory from raw API response data.
 
         Args:
@@ -44,7 +50,9 @@ class PricesHistory(BaseModel):
             PricesHistory instance
         """
         history_data = raw_data.get("history", [])
-        price_points = [PricePoint(t=point["t"], p=point["p"]) for point in history_data]
+        price_points = [
+            PricePoint(t=point["t"], p=point["p"]) for point in history_data
+        ]
 
         return cls(
             history=price_points,
@@ -52,5 +60,5 @@ class PricesHistory(BaseModel):
             start_ts=start_ts,
             end_ts=end_ts,
             interval=interval,
-            fidelity=fidelity
+            fidelity=fidelity,
         )

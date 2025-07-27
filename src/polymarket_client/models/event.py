@@ -99,7 +99,9 @@ class Market(BaseModel):
     neg_risk: bool = Field(default=False, alias="negRisk")
     ready: bool
     funded: bool
-    accepting_orders_timestamp: datetime | None = Field(default=None, alias="acceptingOrdersTimestamp")
+    accepting_orders_timestamp: datetime | None = Field(
+        default=None, alias="acceptingOrdersTimestamp"
+    )
     cyom: bool
     competitive: Decimal = Field(default=0)
     pager_duty_notification_enabled: bool = Field(alias="pagerDutyNotificationEnabled")
@@ -219,7 +221,9 @@ class Event(BaseModel):
     @property
     def active_markets(self) -> list[Market]:
         """Get only active markets for this event."""
-        return [market for market in self.markets if market.active and not market.closed]
+        return [
+            market for market in self.markets if market.active and not market.closed
+        ]
 
     class Config:
         populate_by_name = True
@@ -229,7 +233,9 @@ class EventList(BaseModel):
     """Container for multiple events with pagination info."""
 
     events: list[Event] = Field(default_factory=list, description="List of events")
-    total: int | None = Field(None, description="Total number of events matching the query")
+    total: int | None = Field(
+        None, description="Total number of events matching the query"
+    )
     limit: int | None = Field(None, description="Limit used in the query")
     offset: int | None = Field(None, description="Offset used in the query")
 
@@ -253,7 +259,7 @@ class EventList(BaseModel):
             events=events,
             total=raw_response.get("total", raw_response.get("count")),
             limit=raw_response.get("limit"),
-            offset=raw_response.get("offset")
+            offset=raw_response.get("offset"),
         )
 
     def __iter__(self):
@@ -268,21 +274,29 @@ class EventList(BaseModel):
         """Allow indexing into the events list."""
         return self.events[index]
 
-    def filter_by_status(self, active: bool = True, closed: bool = False, archived: bool = False) -> list[Event]:
+    def filter_by_status(
+        self, active: bool = True, closed: bool = False, archived: bool = False
+    ) -> list[Event]:
         """Filter events by status."""
         return [
-            event for event in self.events
-            if event.active == active and event.closed == closed and event.archived == archived
+            event
+            for event in self.events
+            if event.active == active
+            and event.closed == closed
+            and event.archived == archived
         ]
 
     def filter_by_tag(self, tag_slug: str) -> list[Event]:
         """Filter events by tag slug."""
         return [
-            event for event in self.events
+            event
+            for event in self.events
             if any(tag.slug == tag_slug for tag in event.tags)
         ]
 
-    def filter_by_volume_range(self, min_volume: Decimal | None = None, max_volume: Decimal | None = None) -> list[Event]:
+    def filter_by_volume_range(
+        self, min_volume: Decimal | None = None, max_volume: Decimal | None = None
+    ) -> list[Event]:
         """Filter events by volume range."""
         filtered = self.events
         if min_volume is not None:

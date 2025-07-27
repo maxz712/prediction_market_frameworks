@@ -14,9 +14,7 @@ class StructuredFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         """Format the log record as structured JSON."""
         log_entry = {
-            "timestamp": datetime.fromtimestamp(
-                record.created, tz=UTC
-            ).isoformat(),
+            "timestamp": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -31,13 +29,32 @@ class StructuredFormatter(logging.Formatter):
 
         # Add any extra fields from the log record
         extra_fields = {
-            k: v for k, v in record.__dict__.items()
-            if k not in {
-                "name", "msg", "args", "levelname", "levelno", "pathname",
-                "filename", "module", "exc_info", "exc_text", "stack_info",
-                "lineno", "funcName", "created", "msecs", "relativeCreated",
-                "thread", "threadName", "processName", "process", "getMessage",
-                "message"
+            k: v
+            for k, v in record.__dict__.items()
+            if k
+            not in {
+                "name",
+                "msg",
+                "args",
+                "levelname",
+                "levelno",
+                "pathname",
+                "filename",
+                "module",
+                "exc_info",
+                "exc_text",
+                "stack_info",
+                "lineno",
+                "funcName",
+                "created",
+                "msecs",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "processName",
+                "process",
+                "getMessage",
+                "message",
             }
         }
 
@@ -51,7 +68,7 @@ def setup_logging(
     level: str = "INFO",
     format_type: str = "structured",
     enable_console: bool = True,
-    log_file: str | None = None
+    log_file: str | None = None,
 ) -> None:
     """
     Set up structured logging for the polymarket client.
@@ -112,7 +129,7 @@ def log_api_request(
     url: str,
     params: dict[str, Any] | None = None,
     headers: dict[str, Any] | None = None,
-    request_id: str | None = None
+    request_id: str | None = None,
 ) -> None:
     """
     Log an API request with structured data.
@@ -143,7 +160,7 @@ def log_api_request(
             "params": params,
             "headers": safe_headers,
             "request_id": request_id,
-        }
+        },
     )
 
 
@@ -154,7 +171,7 @@ def log_api_response(
     status_code: int,
     response_time_ms: float,
     request_id: str | None = None,
-    error: str | None = None
+    error: str | None = None,
 ) -> None:
     """
     Log an API response with structured data.
@@ -183,7 +200,7 @@ def log_api_response(
             "response_time_ms": response_time_ms,
             "request_id": request_id,
             "error": error,
-        }
+        },
     )
 
 
@@ -193,7 +210,7 @@ def log_user_action(
     user_id: str | None = None,
     market_id: str | None = None,
     order_id: str | None = None,
-    additional_data: dict[str, Any] | None = None
+    additional_data: dict[str, Any] | None = None,
 ) -> None:
     """
     Log a user action with structured data.
@@ -238,7 +255,7 @@ class PerformanceMetrics:
         operation: str,
         duration_ms: float,
         success: bool = True,
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """Record a completed operation with its performance data.
 
@@ -269,10 +286,7 @@ class PerformanceMetrics:
             extra_data["metadata"] = metadata
 
         self.logger.info(
-            "Operation completed: %s (%.2fms)",
-            operation,
-            duration_ms,
-            extra=extra_data
+            "Operation completed: %s (%.2fms)", operation, duration_ms, extra=extra_data
         )
 
     def get_operation_stats(self, operation: str) -> dict[str, float] | None:
@@ -313,7 +327,7 @@ class PerformanceMetrics:
                 "event_type": "operation_summary",
                 "operation": operation,
                 "statistics": stats,
-            }
+            },
         )
 
     def reset_metrics(self) -> None:
@@ -324,10 +338,8 @@ class PerformanceMetrics:
 
 @contextmanager
 def measure_performance(
-    logger: logging.Logger,
-    operation: str,
-    metadata: dict[str, Any] | None = None
-) -> Generator[None, None, None]:
+    logger: logging.Logger, operation: str, metadata: dict[str, Any] | None = None
+) -> Generator[None]:
     """Context manager for measuring operation performance.
 
     Args:
@@ -369,14 +381,14 @@ def measure_performance(
             operation,
             duration_ms,
             "success" if success else "failed",
-            extra=extra_data
+            extra=extra_data,
         )
 
 
 def log_memory_usage(
     logger: logging.Logger,
     operation: str | None = None,
-    metadata: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None,
 ) -> None:
     """Log current memory usage statistics.
 
@@ -410,13 +422,13 @@ def log_memory_usage(
             "Memory usage: %.1f MB RSS, %.1f MB VMS",
             extra_data["rss_mb"],
             extra_data["vms_mb"],
-            extra=extra_data
+            extra=extra_data,
         )
 
     except ImportError:
         logger.warning(
             "psutil not available for memory monitoring",
-            extra={"event_type": "memory_usage_unavailable"}
+            extra={"event_type": "memory_usage_unavailable"},
         )
 
 

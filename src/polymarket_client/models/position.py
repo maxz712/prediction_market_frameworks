@@ -13,8 +13,12 @@ class Position(BaseModel):
     token_id: str = Field(..., description="Token/outcome identifier")
     size: Decimal = Field(..., description="Position size/quantity")
     avg_price: Decimal = Field(..., description="Average entry price")
-    realized_pnl: Decimal = Field(default=Decimal("0"), description="Realized profit/loss")
-    unrealized_pnl: Decimal = Field(default=Decimal("0"), description="Unrealized profit/loss")
+    realized_pnl: Decimal = Field(
+        default=Decimal("0"), description="Realized profit/loss"
+    )
+    unrealized_pnl: Decimal = Field(
+        default=Decimal("0"), description="Unrealized profit/loss"
+    )
     user: str = Field(..., description="User address")
 
     @classmethod
@@ -25,8 +29,17 @@ class Position(BaseModel):
             token_id=data.get("tokenId", data.get("token_id", data.get("asset", ""))),
             size=Decimal(str(data.get("size", "0"))),
             avg_price=Decimal(str(data.get("avgPrice", data.get("avg_price", "0")))),
-            realized_pnl=Decimal(str(data.get("realizedPnl", data.get("realized_pnl", "0")))),
-            unrealized_pnl=Decimal(str(data.get("unrealizedPnl", data.get("unrealized_pnl", data.get("cashPnl", "0"))))),
+            realized_pnl=Decimal(
+                str(data.get("realizedPnl", data.get("realized_pnl", "0")))
+            ),
+            unrealized_pnl=Decimal(
+                str(
+                    data.get(
+                        "unrealizedPnl",
+                        data.get("unrealized_pnl", data.get("cashPnl", "0")),
+                    )
+                )
+            ),
             user=data.get("user", data.get("proxyWallet", "")),
         )
 
@@ -54,10 +67,14 @@ class Position(BaseModel):
 class UserPositions(BaseModel):
     """Container for user positions across markets."""
 
-    positions: list[Position] = Field(default_factory=list, description="List of user positions")
+    positions: list[Position] = Field(
+        default_factory=list, description="List of user positions"
+    )
 
     @classmethod
-    def from_raw_data(cls, data: dict[str, Any] | list[dict[str, Any]]) -> "UserPositions":
+    def from_raw_data(
+        cls, data: dict[str, Any] | list[dict[str, Any]]
+    ) -> "UserPositions":
         """Create UserPositions from raw API data."""
         positions = []
 

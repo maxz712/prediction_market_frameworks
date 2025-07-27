@@ -1,6 +1,5 @@
 """Network-related exceptions for the Polymarket SDK."""
 
-
 from .base import PolymarketError
 
 
@@ -15,7 +14,7 @@ class PolymarketNetworkError(PolymarketError):
         self,
         message: str = "Network error occurred",
         original_error: Exception | None = None,
-        endpoint: str | None = None
+        endpoint: str | None = None,
     ) -> None:
         """Initialize the network error.
 
@@ -63,7 +62,7 @@ class PolymarketTimeoutError(PolymarketNetworkError):
         self,
         message: str = "Request timed out",
         timeout_duration: float | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize the timeout error.
 

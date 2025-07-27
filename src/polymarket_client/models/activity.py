@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, validator
 
 class ActivityMarket(BaseModel):
     """Market information in activity data."""
+
     condition_id: str = Field(description="The condition ID of the market")
     question: str = Field(description="The market question")
     slug: str = Field(description="The market slug")
@@ -19,6 +20,7 @@ class ActivityMarket(BaseModel):
 
 class UserProfile(BaseModel):
     """User profile information in activity data."""
+
     name: str | None = Field(None, description="User display name")
     username: str | None = Field(None, description="Username")
     profile_picture: str | None = Field(None, description="Profile picture URL")
@@ -26,17 +28,24 @@ class UserProfile(BaseModel):
 
 class Activity(BaseModel):
     """Single activity record."""
+
     id: str = Field(description="Unique activity ID")
     proxy_wallet: str = Field(description="Proxy wallet address")
     timestamp: int = Field(description="Activity timestamp (Unix seconds)")
     condition_id: str = Field(description="Market condition ID")
-    type: str = Field(description="Activity type (TRADE, SPLIT, MERGE, REDEEM, REWARD, CONVERSION)")
-    size: str = Field(description="Size of the activity (as string to preserve precision)")
+    type: str = Field(
+        description="Activity type (TRADE, SPLIT, MERGE, REDEEM, REWARD, CONVERSION)"
+    )
+    size: str = Field(
+        description="Size of the activity (as string to preserve precision)"
+    )
     price: str | None = Field(None, description="Price of the trade (if applicable)")
     side: str | None = Field(None, description="Trade side (BUY/SELL) if applicable")
     outcome: str | None = Field(None, description="Outcome name if applicable")
     market: ActivityMarket | None = Field(None, description="Market information")
-    user_profile: UserProfile | None = Field(None, description="User profile information")
+    user_profile: UserProfile | None = Field(
+        None, description="User profile information"
+    )
 
     @validator("timestamp")
     def validate_timestamp(self, v):
@@ -79,7 +88,10 @@ class Activity(BaseModel):
 
 class UserActivity(BaseModel):
     """User activity history response."""
-    activities: list[Activity] = Field(default_factory=list, description="List of user activities")
+
+    activities: list[Activity] = Field(
+        default_factory=list, description="List of user activities"
+    )
     total_count: int | None = Field(None, description="Total count if available")
 
     @classmethod
@@ -96,7 +108,7 @@ class UserActivity(BaseModel):
                     slug=item["market"].get("slug", ""),
                     group_item_title=item["market"].get("groupItemTitle"),
                     group_item_threshold=item["market"].get("groupItemThreshold"),
-                    end_date_iso=item["market"].get("endDateIso")
+                    end_date_iso=item["market"].get("endDateIso"),
                 )
 
             # Handle nested user profile data
@@ -105,7 +117,7 @@ class UserActivity(BaseModel):
                 user_profile_data = UserProfile(
                     name=item["userProfile"].get("name"),
                     username=item["userProfile"].get("username"),
-                    profile_picture=item["userProfile"].get("profilePicture")
+                    profile_picture=item["userProfile"].get("profilePicture"),
                 )
 
             activity = Activity(
@@ -119,7 +131,7 @@ class UserActivity(BaseModel):
                 side=item.get("side"),
                 outcome=item.get("outcome"),
                 market=market_data,
-                user_profile=user_profile_data
+                user_profile=user_profile_data,
             )
             activities.append(activity)
 
@@ -128,12 +140,18 @@ class UserActivity(BaseModel):
     def filter_by_type(self, activity_type: str) -> "UserActivity":
         """Filter activities by type."""
         filtered_activities = [a for a in self.activities if a.type == activity_type]
-        return UserActivity(activities=filtered_activities, total_count=len(filtered_activities))
+        return UserActivity(
+            activities=filtered_activities, total_count=len(filtered_activities)
+        )
 
     def filter_by_market(self, condition_id: str) -> "UserActivity":
         """Filter activities by market condition ID."""
-        filtered_activities = [a for a in self.activities if a.condition_id == condition_id]
-        return UserActivity(activities=filtered_activities, total_count=len(filtered_activities))
+        filtered_activities = [
+            a for a in self.activities if a.condition_id == condition_id
+        ]
+        return UserActivity(
+            activities=filtered_activities, total_count=len(filtered_activities)
+        )
 
     def get_trades_only(self) -> "UserActivity":
         """Get only trade activities."""

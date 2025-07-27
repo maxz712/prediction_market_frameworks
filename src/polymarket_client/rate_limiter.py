@@ -28,7 +28,7 @@ class TokenBucketRateLimiter:
         self,
         requests_per_second: float = 5.0,
         burst_capacity: int | None = None,
-        per_host: bool = True
+        per_host: bool = True,
     ) -> None:
         """
         Initialize rate limiter.
@@ -45,13 +45,13 @@ class TokenBucketRateLimiter:
             lambda: {
                 "tokens": self.burst_capacity,
                 "last_update": time.time(),
-                "lock": threading.Lock()
+                "lock": threading.Lock(),
             }
         )
         self._global_bucket = {
             "tokens": self.burst_capacity,
             "last_update": time.time(),
-            "lock": threading.Lock()
+            "lock": threading.Lock(),
         }
 
     def _get_bucket_key(self, url: str) -> str:
@@ -136,7 +136,7 @@ class SlidingWindowRateLimiter:
         self,
         requests_per_window: int = 100,
         window_size_seconds: int = 60,
-        per_host: bool = True
+        per_host: bool = True,
     ) -> None:
         """
         Initialize sliding window rate limiter.
@@ -150,15 +150,9 @@ class SlidingWindowRateLimiter:
         self.window_size = window_size_seconds
         self.per_host = per_host
         self._windows: dict[str, dict[str, Any]] = defaultdict(
-            lambda: {
-                "requests": deque(),
-                "lock": threading.Lock()
-            }
+            lambda: {"requests": deque(), "lock": threading.Lock()}
         )
-        self._global_window = {
-            "requests": deque(),
-            "lock": threading.Lock()
-        }
+        self._global_window = {"requests": deque(), "lock": threading.Lock()}
 
     def _get_bucket_key(self, url: str) -> str:
         """Extract bucket key from URL."""
@@ -242,7 +236,7 @@ class RateLimitedHTTPAdapter(HTTPAdapter):
         self,
         rate_limiter: Any | None = None,
         timeout_on_rate_limit: float | None = 30.0,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize rate limited HTTP adapter.
@@ -261,8 +255,7 @@ class RateLimitedHTTPAdapter(HTTPAdapter):
         if self.rate_limiter:
             try:
                 self.rate_limiter.wait_if_needed(
-                    request.url,
-                    timeout=self.timeout_on_rate_limit
+                    request.url, timeout=self.timeout_on_rate_limit
                 )
             except RateLimitError as e:
                 # Convert to requests timeout error for consistency
@@ -280,7 +273,7 @@ def create_rate_limited_session(
     window_size_seconds: int = 60,
     per_host: bool = True,
     timeout_on_rate_limit: float | None = 30.0,
-    **session_kwargs
+    **session_kwargs,
 ) -> requests.Session:
     """
     Create a requests session with rate limiting enabled.
@@ -306,20 +299,20 @@ def create_rate_limited_session(
         rate_limiter = SlidingWindowRateLimiter(
             requests_per_window=requests_per_window,
             window_size_seconds=window_size_seconds,
-            per_host=per_host
+            per_host=per_host,
         )
     else:  # default to token_bucket
         rate_limiter = TokenBucketRateLimiter(
             requests_per_second=requests_per_second,
             burst_capacity=burst_capacity,
-            per_host=per_host
+            per_host=per_host,
         )
 
     # Create rate limited adapter
     adapter = RateLimitedHTTPAdapter(
         rate_limiter=rate_limiter,
         timeout_on_rate_limit=timeout_on_rate_limit,
-        **session_kwargs
+        **session_kwargs,
     )
 
     # Mount adapter for both HTTP and HTTPS

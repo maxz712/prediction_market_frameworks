@@ -44,9 +44,7 @@ class PolymarketClient:
                     "Failed to load configuration from environment variables. "
                     "Please provide a config object or set the required environment variables."
                 )
-                raise PolymarketConfigurationError(
-                    msg
-                ) from e
+                raise PolymarketConfigurationError(msg) from e
 
         self.config = config
         self.gamma_client = _GammaClient(config)
@@ -84,7 +82,7 @@ class PolymarketClient:
         tag: str | list[str] | None = None,
         tag_id: int | list[int] | None = None,
         related_tags: bool | None = None,
-        tag_slug: str | list[str] | None = None
+        tag_slug: str | list[str] | None = None,
     ) -> EventList:
         """Get events from Gamma API with comprehensive filtering options.
 
@@ -134,7 +132,7 @@ class PolymarketClient:
             tag=tag,
             tag_id=tag_id,
             related_tags=related_tags,
-            tag_slug=tag_slug
+            tag_slug=tag_slug,
         )
 
     def get_events_paginated(
@@ -167,7 +165,7 @@ class PolymarketClient:
         tag: str | list[str] | None = None,
         tag_id: int | list[int] | None = None,
         related_tags: bool | None = None,
-        tag_slug: str | list[str] | None = None
+        tag_slug: str | list[str] | None = None,
     ) -> PaginatedResponse[Event]:
         """Get events from Gamma API with pagination metadata and comprehensive filtering options.
 
@@ -237,7 +235,7 @@ class PolymarketClient:
             tag=tag,
             tag_id=tag_id,
             related_tags=related_tags,
-            tag_slug=tag_slug
+            tag_slug=tag_slug,
         )
 
     def iter_events(
@@ -269,8 +267,8 @@ class PolymarketClient:
         tag: str | list[str] | None = None,
         tag_id: int | list[int] | None = None,
         related_tags: bool | None = None,
-        tag_slug: str | list[str] | None = None
-    ) -> Generator[Event, None, None]:
+        tag_slug: str | list[str] | None = None,
+    ) -> Generator[Event]:
         """Iterator for events that yields events one page at a time (memory efficient).
 
         This method is useful when you need to process a large number of events without
@@ -339,7 +337,7 @@ class PolymarketClient:
             tag=tag,
             tag_id=tag_id,
             related_tags=related_tags,
-            tag_slug=tag_slug
+            tag_slug=tag_slug,
         )
 
     def get_active_events(self, limit: int = 100) -> EventList:
@@ -372,7 +370,7 @@ class PolymarketClient:
         limit: int | None = None,
         active: bool | None = None,
         closed: bool | None = None,
-        **kwargs
+        **kwargs,
     ) -> EventList:
         """Get events by their slug(s) - convenience function.
 
@@ -401,11 +399,7 @@ class PolymarketClient:
             )
         """
         return self.get_events(
-            slug=slug,
-            limit=limit,
-            active=active,
-            closed=closed,
-            **kwargs
+            slug=slug, limit=limit, active=active, closed=closed, **kwargs
         )
 
     # Market-related methods
@@ -456,8 +450,9 @@ class PolymarketClient:
             raise ValueError(msg)
         return self.clob_client.get_order_book(sanitized_token_id)
 
-    def get_user_market_trades_history(self, token_id: str, limit: int = 100,
-                                 offset: int = 0) -> TradeHistory:
+    def get_user_market_trades_history(
+        self, token_id: str, limit: int = 100, offset: int = 0
+    ) -> TradeHistory:
         """Get comprehensive trade history for a specific token/market.
 
         Retrieves the trade history for the authenticated user in a specific market.
@@ -495,7 +490,7 @@ class PolymarketClient:
         start_ts: int | None = None,
         end_ts: int | None = None,
         interval: str | None = None,
-        fidelity: int | None = None
+        fidelity: int | None = None,
     ) -> PricesHistory:
         """
         Get price history for a specific market.
@@ -532,7 +527,7 @@ class PolymarketClient:
             start_ts=start_ts,
             end_ts=end_ts,
             interval=interval,
-            fidelity=fidelity
+            fidelity=fidelity,
         )
 
     def cancel_order(self, order_id: str) -> CancelResponse:
@@ -548,11 +543,7 @@ class PolymarketClient:
         if sanitized_order_id is None:
             msg = "Invalid order_id format"
             raise ValueError(msg)
-        log_user_action(
-            self._logger,
-            "cancel_order",
-            order_id=sanitized_order_id
-        )
+        log_user_action(self._logger, "cancel_order", order_id=sanitized_order_id)
         return self.clob_client.cancel_order(sanitized_order_id)
 
     def cancel_orders(self, order_ids: list[str]) -> CancelResponse:
@@ -567,7 +558,7 @@ class PolymarketClient:
         log_user_action(
             self._logger,
             "cancel_orders",
-            additional_data={"order_count": len(order_ids), "order_ids": order_ids}
+            additional_data={"order_count": len(order_ids), "order_ids": order_ids},
         )
         return self.clob_client.cancel_orders(order_ids)
 
@@ -598,8 +589,8 @@ class PolymarketClient:
                 "order_type": getattr(request, "order_type", None),
                 "side": getattr(request, "side", None),
                 "size": getattr(request, "size", None),
-                "price": getattr(request, "price", None)
-            }
+                "price": getattr(request, "price", None),
+            },
         )
         return self.clob_client.submit_limit_order(request)
 
@@ -614,7 +605,9 @@ class PolymarketClient:
         """
         return self.clob_client.get_open_orders(market)
 
-    def get_user_position(self, proxy_wallet_address: str, market: str | None = None) -> UserPositions:
+    def get_user_position(
+        self, proxy_wallet_address: str, market: str | None = None
+    ) -> UserPositions:
         """Get user position.
 
         Args:
@@ -653,7 +646,7 @@ class PolymarketClient:
         end: int | None = None,
         side: str | None = None,
         sort_by: str = "TIMESTAMP",
-        sort_direction: str = "DESC"
+        sort_direction: str = "DESC",
     ) -> UserActivity:
         """Get user's on-chain activity history.
 
@@ -703,7 +696,7 @@ class PolymarketClient:
             end=end,
             side=side,
             sort_by=sort_by,
-            sort_direction=sort_direction
+            sort_direction=sort_direction,
         )
 
     def get_current_user_activity(
@@ -716,7 +709,7 @@ class PolymarketClient:
         end: int | None = None,
         side: str | None = None,
         sort_by: str = "TIMESTAMP",
-        sort_direction: str = "DESC"
+        sort_direction: str = "DESC",
     ) -> UserActivity:
         """Get current user's on-chain activity history.
 
@@ -762,7 +755,7 @@ class PolymarketClient:
             end=end,
             side=side,
             sort_by=sort_by,
-            sort_direction=sort_direction
+            sort_direction=sort_direction,
         )
 
     # Convenience methods

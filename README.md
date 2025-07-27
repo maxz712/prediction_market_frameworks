@@ -114,7 +114,7 @@ result = client.submit_market_order(
 # Submit limit order
 result = client.submit_limit_order_gtc(
     token_id="token_123",
-    side="BUY", 
+    side="BUY",
     size=10.0,
     price=0.75
 )
@@ -229,7 +229,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Roadmap
 
 - [x] Polymarket integration
-- [ ] Kalshi integration  
+- [ ] Kalshi integration
 - [ ] Async client support
 - [ ] WebSocket streaming
 - [ ] Advanced order types

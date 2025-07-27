@@ -35,7 +35,7 @@ client = PolymarketClient(config)
 Set the following environment variables for automatic configuration:
 
 - `GAMMA_ENDPOINT`: Gamma API endpoint URL
-- `CLOB_ENDPOINT`: CLOB API endpoint URL 
+- `CLOB_ENDPOINT`: CLOB API endpoint URL
 - `DATA_API_ENDPOINT`: Data API endpoint URL
 - `PK`: Private key for authentication
 - `WALLET_PROXY_ADDRESS`: Proxy wallet address (optional)
@@ -49,7 +49,7 @@ from polymarket_client import PolymarketConfig
 
 config = PolymarketConfig(
     gamma_endpoint="https://gamma-api.polymarket.com",
-    clob_endpoint="https://clob.polymarket.com", 
+    clob_endpoint="https://clob.polymarket.com",
     data_api_endpoint="https://data-api.polymarket.com",
     pk="your_private_key",
     wallet_proxy_address="0x...",  # Optional
@@ -153,7 +153,7 @@ print(f"Current page events: {len(response.data)}")
 # Check if more pages are available
 if response.meta.has_next:
     next_response = client.get_events_paginated(
-        limit=10, 
+        limit=10,
         offset=response.meta.next_offset
     )
 ```
@@ -206,7 +206,7 @@ events = client.get_events_by_slug("presidential-election-2024")
 
 # Get multiple events by slug with filters
 events = client.get_events_by_slug(
-    ["event1-slug", "event2-slug"], 
+    ["event1-slug", "event2-slug"],
     active=True,
     liquidity_min=1000
 )
@@ -366,8 +366,8 @@ for order in open_orders.orders:
 ```python
 # Get positions for a specific user
 def get_user_position(
-    self, 
-    proxy_wallet_address: str, 
+    self,
+    proxy_wallet_address: str,
     market: str | None = None
 ) -> UserPositions
 
@@ -402,8 +402,8 @@ for position in positions.positions:
 
 ```python
 def get_user_market_trades_history(
-    self, 
-    token_id: str, 
+    self,
+    token_id: str,
     limit: int = 100,
     offset: int = 0
 ) -> TradeHistory
@@ -576,7 +576,7 @@ For advanced operations, you can access the underlying clients directly:
 gamma_client = client.gamma
 # Use gamma-specific methods
 
-# Access CLOB client directly  
+# Access CLOB client directly
 clob_client = client.clob
 # Use CLOB-specific methods
 
@@ -671,11 +671,11 @@ print(f"Found {len(events)} active events")
 # Get market data for first event's first market
 if events and events[0].markets:
     market_id = events[0].markets[0].condition_id
-    
+
     # Get order book
     order_book = client.get_order_book(market_id)
     print(f"Order book has {len(order_book.bids)} bids and {len(order_book.asks)} asks")
-    
+
     # Submit a limit order
     order_request = LimitOrderRequest(
         token_id=market_id,
@@ -684,14 +684,14 @@ if events and events[0].markets:
         side=OrderSide.BUY,
         order_type=OrderType.GTC
     )
-    
+
     order_response = client.submit_limit_order(order_request)
     print(f"Order submitted: {order_response.order_id}")
-    
+
     # Get user positions
     positions = client.get_current_user_position()
     print(f"User has {len(positions.positions)} positions")
-    
+
     # Get user activity
     activity = client.get_current_user_activity(limit=20)
     print(f"User has {len(activity.activity)} recent activities")

@@ -130,6 +130,10 @@ ignore = [
     "ARG",    # Unused function args in tests
     "PLR2004", # Magic value used in comparison
 ]
+"examples/**/*.py" = [
+    "T20",    # Allow print in examples
+    "T201",   # Allow print() in examples
+]
 
 # Black configuration
 [tool.black]

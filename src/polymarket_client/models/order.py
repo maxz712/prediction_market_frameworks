@@ -47,7 +47,9 @@ class Order(BaseModel):
     # Timestamps
     created_at: datetime = Field(..., description="Order creation timestamp")
     updated_at: datetime | None = Field(None, description="Last update timestamp")
-    expires_at: datetime | None = Field(None, description="Expiration timestamp for GTD orders")
+    expires_at: datetime | None = Field(
+        None, description="Expiration timestamp for GTD orders"
+    )
 
     # Additional metadata
     fee_rate: float | None = Field(None, description="Fee rate for this order")
@@ -91,15 +93,33 @@ class Order(BaseModel):
             status=OrderStatus(raw_order.get("status", "OPEN").upper()),
             price=float(raw_order.get("price", 0)),
             size=float(raw_order.get("size", raw_order.get("original_size", 0))),
-            filled_size=float(raw_order.get("filled_size", raw_order.get("size_matched", 0))),
-            remaining_size=float(raw_order.get("remaining_size", float(raw_order.get("size", 0)) - float(raw_order.get("size_matched", 0)))),
+            filled_size=float(
+                raw_order.get("filled_size", raw_order.get("size_matched", 0))
+            ),
+            remaining_size=float(
+                raw_order.get(
+                    "remaining_size",
+                    float(raw_order.get("size", 0))
+                    - float(raw_order.get("size_matched", 0)),
+                )
+            ),
             owner=raw_order.get("owner", raw_order.get("maker", raw_order.get("user"))),
-            created_at=cls._parse_timestamp(raw_order.get("created_at", raw_order.get("timestamp"))),
-            updated_at=cls._parse_timestamp(raw_order.get("updated_at")) if raw_order.get("updated_at") else None,
-            expires_at=cls._parse_timestamp(raw_order.get("expires_at")) if raw_order.get("expires_at") else None,
-            fee_rate=float(raw_order.get("fee_rate", raw_order.get("fee_rate_bps", 0)) / 10000) if raw_order.get("fee_rate") or raw_order.get("fee_rate_bps") else None,
+            created_at=cls._parse_timestamp(
+                raw_order.get("created_at", raw_order.get("timestamp"))
+            ),
+            updated_at=cls._parse_timestamp(raw_order.get("updated_at"))
+            if raw_order.get("updated_at")
+            else None,
+            expires_at=cls._parse_timestamp(raw_order.get("expires_at"))
+            if raw_order.get("expires_at")
+            else None,
+            fee_rate=float(
+                raw_order.get("fee_rate", raw_order.get("fee_rate_bps", 0)) / 10000
+            )
+            if raw_order.get("fee_rate") or raw_order.get("fee_rate_bps")
+            else None,
             nonce=raw_order.get("nonce"),
-            signature=raw_order.get("signature")
+            signature=raw_order.get("signature"),
         )
 
     @property
@@ -115,7 +135,11 @@ class Order(BaseModel):
     @property
     def is_open(self) -> bool:
         """Check if the order is still open."""
-        return self.status in [OrderStatus.OPEN, OrderStatus.LIVE, OrderStatus.PARTIALLY_FILLED]
+        return self.status in [
+            OrderStatus.OPEN,
+            OrderStatus.LIVE,
+            OrderStatus.PARTIALLY_FILLED,
+        ]
 
     @property
     def is_filled(self) -> bool:
@@ -149,7 +173,9 @@ class OrderList(BaseModel):
     """Container for multiple orders with pagination info."""
 
     orders: list[Order] = Field(default_factory=list, description="List of orders")
-    total: int | None = Field(None, description="Total number of orders matching the query")
+    total: int | None = Field(
+        None, description="Total number of orders matching the query"
+    )
     limit: int | None = Field(None, description="Limit used in the query")
     offset: int | None = Field(None, description="Offset used in the query")
 
@@ -173,7 +199,7 @@ class OrderList(BaseModel):
             orders=orders,
             total=raw_response.get("total", raw_response.get("count")),
             limit=raw_response.get("limit"),
-            offset=raw_response.get("offset")
+            offset=raw_response.get("offset"),
         )
 
     def __iter__(self):
@@ -214,5 +240,3 @@ class OrderList(BaseModel):
     def sell_orders(self) -> list[Order]:
         """Get only sell orders."""
         return self.filter_by_side(OrderSide.SELL)
-
-

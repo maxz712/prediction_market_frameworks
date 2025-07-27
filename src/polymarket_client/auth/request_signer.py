@@ -1,7 +1,6 @@
 import hashlib
 import hmac
 import time
-from typing import Dict, Optional
 
 
 class RequestSigner:
@@ -12,11 +11,11 @@ class RequestSigner:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        api_secret: Optional[str] = None,
-        api_passphrase: Optional[str] = None,
-        private_key: Optional[str] = None,
-        chain_id: int = 137
+        api_key: str | None = None,
+        api_secret: str | None = None,
+        api_passphrase: str | None = None,
+        private_key: str | None = None,
+        chain_id: int = 137,
     ) -> None:
         """
         Initialize the request signer.
@@ -35,12 +34,8 @@ class RequestSigner:
         self.chain_id = chain_id
 
     def sign_request_hmac(
-        self,
-        method: str,
-        path: str,
-        body: str = "",
-        timestamp: Optional[str] = None
-    ) -> Dict[str, str]:
+        self, method: str, path: str, body: str = "", timestamp: str | None = None
+    ) -> dict[str, str]:
         """
         Sign a request using HMAC-SHA256 for API key authentication.
 
@@ -65,33 +60,28 @@ class RequestSigner:
 
         # Create the signature payload
         message = f"{timestamp}{method.upper()}{path}{body}"
-        
+
         # Generate HMAC signature
         signature = hmac.new(
-            self.api_secret.encode('utf-8'),
-            message.encode('utf-8'),
-            hashlib.sha256
+            self.api_secret.encode("utf-8"), message.encode("utf-8"), hashlib.sha256
         ).hexdigest()
 
         return {
             "L2-API-KEY": self.api_key,
             "L2-API-SIGNATURE": signature,
             "L2-API-TIMESTAMP": timestamp,
-            "L2-API-PASSPHRASE": self.api_passphrase
+            "L2-API-PASSPHRASE": self.api_passphrase,
         }
 
     def create_auth_headers(
-        self,
-        method: str,
-        path: str,
-        body: str = ""
-    ) -> Dict[str, str]:
+        self, method: str, path: str, body: str = ""
+    ) -> dict[str, str]:
         """
         Create authentication headers for a request.
 
         Args:
             method: HTTP method
-            path: Request path  
+            path: Request path
             body: Request body
 
         Returns:
@@ -100,12 +90,7 @@ class RequestSigner:
         return self.sign_request_hmac(method, path, body)
 
     def verify_hmac_signature(
-        self,
-        signature: str,
-        method: str,
-        path: str,
-        body: str,
-        timestamp: str
+        self, signature: str, method: str, path: str, body: str, timestamp: str
     ) -> bool:
         """
         Verify an HMAC signature for request authentication.
@@ -126,12 +111,10 @@ class RequestSigner:
         try:
             # Recreate the message that should have been signed
             message = f"{timestamp}{method.upper()}{path}{body}"
-            
+
             # Generate expected signature
             expected_signature = hmac.new(
-                self.api_secret.encode('utf-8'),
-                message.encode('utf-8'),
-                hashlib.sha256
+                self.api_secret.encode("utf-8"), message.encode("utf-8"), hashlib.sha256
             ).hexdigest()
 
             # Compare signatures using constant time comparison

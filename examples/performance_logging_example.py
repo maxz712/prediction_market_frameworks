@@ -62,7 +62,7 @@ def main() -> None:
         level="INFO",
         format_type="structured",  # Use structured JSON logging
         enable_console=True,
-        log_file="performance_metrics.log"  # Also log to file
+        log_file="performance_metrics.log",  # Also log to file
     )
 
     # 2. Create a performance logger and metrics collector
@@ -72,9 +72,7 @@ def main() -> None:
 
     for i in range(3):
         with measure_performance(
-            logger,
-            "api_call",
-            metadata={"endpoint": "/markets", "attempt": i + 1}
+            logger, "api_call", metadata={"endpoint": "/markets", "attempt": i + 1}
         ):
             result = simulate_api_call(random.uniform(50, 200))
 
@@ -94,7 +92,6 @@ def main() -> None:
 
         # Record the operation
         metrics.record_operation(operation, duration, success, metadata)
-
 
     # 5. Example 3: Measuring database operations
 
@@ -117,9 +114,8 @@ def main() -> None:
                 f"db_{operation.lower()}",
                 duration_ms,
                 result["success"],
-                {"records": record_count}
+                {"records": record_count},
             )
-
 
         except Exception as e:
             duration_ms = (time.perf_counter() - start_time) * 1000
@@ -127,7 +123,7 @@ def main() -> None:
                 f"db_{operation.lower()}",
                 duration_ms,
                 False,
-                {"records": record_count, "error": str(e)}
+                {"records": record_count, "error": str(e)},
             )
 
     # 6. Example 4: Async operations (requires some manual timing)
@@ -141,12 +137,8 @@ def main() -> None:
                 duration_ms = (time.perf_counter() - start_time) * 1000
 
                 metrics.record_operation(
-                    "async_operation",
-                    duration_ms,
-                    True,
-                    {"iteration": i + 1}
+                    "async_operation", duration_ms, True, {"iteration": i + 1}
                 )
-
 
             except Exception as e:
                 duration_ms = (time.perf_counter() - start_time) * 1000
@@ -154,7 +146,7 @@ def main() -> None:
                     "async_operation",
                     duration_ms,
                     False,
-                    {"iteration": i + 1, "error": str(e)}
+                    {"iteration": i + 1, "error": str(e)},
                 )
 
     # Run async examples
@@ -179,20 +171,26 @@ def main() -> None:
     # 8. Generate operation summaries
 
     all_operations = [
-        "api_call", "fetch_markets", "fetch_positions", "place_order", "cancel_order",
-        "db_select", "db_insert", "db_update", "db_delete", "async_operation"
+        "api_call",
+        "fetch_markets",
+        "fetch_positions",
+        "place_order",
+        "cancel_order",
+        "db_select",
+        "db_insert",
+        "db_update",
+        "db_delete",
+        "async_operation",
     ]
 
     for operation in all_operations:
         stats = metrics.get_operation_stats(operation)
         if stats:
-
             # Log summary to structured logs
             metrics.log_operation_summary(operation)
 
     # 9. Final memory usage
     log_memory_usage(logger, "example_completion")
-
 
 
 if __name__ == "__main__":

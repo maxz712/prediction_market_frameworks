@@ -42,7 +42,9 @@ class TestTokenBucketRateLimiter:
 
     def test_per_host_buckets(self):
         """Test that per-host rate limiting works correctly."""
-        limiter = TokenBucketRateLimiter(requests_per_second=1.0, burst_capacity=2, per_host=True)
+        limiter = TokenBucketRateLimiter(
+            requests_per_second=1.0, burst_capacity=2, per_host=True
+        )
 
         # Different hosts should have separate buckets
         assert limiter.can_proceed("http://example1.com") is True
@@ -56,7 +58,9 @@ class TestTokenBucketRateLimiter:
 
     def test_global_bucket(self):
         """Test that global rate limiting works correctly."""
-        limiter = TokenBucketRateLimiter(requests_per_second=1.0, burst_capacity=2, per_host=False)
+        limiter = TokenBucketRateLimiter(
+            requests_per_second=1.0, burst_capacity=2, per_host=False
+        )
 
         # All requests should share the same bucket
         assert limiter.can_proceed("http://example1.com") is True
@@ -85,14 +89,18 @@ class TestSlidingWindowRateLimiter:
 
     def test_initialization(self):
         """Test rate limiter initialization."""
-        limiter = SlidingWindowRateLimiter(requests_per_window=10, window_size_seconds=60)
+        limiter = SlidingWindowRateLimiter(
+            requests_per_window=10, window_size_seconds=60
+        )
         assert limiter.limit == 10
         assert limiter.window_size == 60
         assert limiter.per_host is True
 
     def test_can_proceed_within_limit(self):
         """Test that requests within limit can proceed."""
-        limiter = SlidingWindowRateLimiter(requests_per_window=3, window_size_seconds=60)
+        limiter = SlidingWindowRateLimiter(
+            requests_per_window=3, window_size_seconds=60
+        )
 
         # Should allow requests within limit
         assert limiter.can_proceed("http://example.com") is True
@@ -104,7 +112,9 @@ class TestSlidingWindowRateLimiter:
 
     def test_per_host_windows(self):
         """Test that per-host rate limiting works correctly."""
-        limiter = SlidingWindowRateLimiter(requests_per_window=2, window_size_seconds=60, per_host=True)
+        limiter = SlidingWindowRateLimiter(
+            requests_per_window=2, window_size_seconds=60, per_host=True
+        )
 
         # Different hosts should have separate windows
         assert limiter.can_proceed("http://example1.com") is True
@@ -149,7 +159,9 @@ class TestRateLimitedHTTPAdapter:
         response = adapter.send(request)
 
         # Verify rate limiting was applied
-        limiter.wait_if_needed.assert_called_once_with("http://example.com", timeout=30.0)
+        limiter.wait_if_needed.assert_called_once_with(
+            "http://example.com", timeout=30.0
+        )
         mock_super_send.assert_called_once()
         assert response is mock_response
 
@@ -176,7 +188,7 @@ class TestCreateRateLimitedSession:
         session = create_rate_limited_session(
             rate_limiter_type="token_bucket",
             requests_per_second=10.0,
-            burst_capacity=20
+            burst_capacity=20,
         )
 
         assert isinstance(session, requests.Session)
@@ -191,7 +203,7 @@ class TestCreateRateLimitedSession:
         session = create_rate_limited_session(
             rate_limiter_type="sliding_window",
             requests_per_window=100,
-            window_size_seconds=60
+            window_size_seconds=60,
         )
 
         assert isinstance(session, requests.Session)
@@ -203,9 +215,7 @@ class TestCreateRateLimitedSession:
 
     def test_create_session_with_custom_timeout(self):
         """Test creating session with custom rate limit timeout."""
-        session = create_rate_limited_session(
-            timeout_on_rate_limit=60.0
-        )
+        session = create_rate_limited_session(timeout_on_rate_limit=60.0)
 
         adapter = session.get_adapter("https://example.com")
         assert adapter.timeout_on_rate_limit == 60.0

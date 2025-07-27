@@ -50,7 +50,7 @@ class _ClobClient:
                 key=config.pk,  # EOA private key
                 chain_id=config.chain_id,
                 signature_type=1,
-                funder=config.wallet_proxy_address
+                funder=config.wallet_proxy_address,
             )
             # Set API credentials for proxy setup
             self._py_client.set_api_creds(self._py_client.create_or_derive_api_creds())
@@ -59,7 +59,7 @@ class _ClobClient:
                 host=config.get_endpoint("clob"),
                 key=config.pk,  # Private key should match the trading address
                 chain_id=config.chain_id,
-                creds=config.api_creds
+                creds=config.api_creds,
             )
 
         # Initialize session for direct API calls
@@ -114,15 +114,16 @@ class _ClobClient:
                 max_retries=Retry(
                     total=self.config.max_retries,
                     backoff_factor=0.3,
-                    status_forcelist=[429, 500, 502, 503, 504]
-                )
+                    status_forcelist=[429, 500, 502, 503, 504],
+                ),
             )
         else:
             # Create regular session without rate limiting
             session = requests.Session()
             retry = Retry(
-                total=self.config.max_retries, backoff_factor=0.3,
-                status_forcelist=[429, 500, 502, 503, 504]
+                total=self.config.max_retries,
+                backoff_factor=0.3,
+                status_forcelist=[429, 500, 502, 503, 504],
             )
             adapter = HTTPAdapter(max_retries=retry)
             session.mount("https://", adapter)
@@ -160,9 +161,8 @@ class _ClobClient:
             timestamp=int(summary.timestamp),
             hash=summary.hash,
             raw_bids=summary.bids,
-            raw_asks=summary.asks
+            raw_asks=summary.asks,
         )
-
 
     def post_order(self, order_args: dict[str, Any]) -> dict[str, Any]:
         """Post an order using OrderArgs.
@@ -216,8 +216,9 @@ class _ClobClient:
         return CancelResponse.from_raw_response(raw_response)
 
     # Extended functionality - additional CLOB API endpoints
-    def get_user_market_trades_history(self, token_id: str, limit: int = 100,
-                                 offset: int = 0) -> TradeHistory:
+    def get_user_market_trades_history(
+        self, token_id: str, limit: int = 100, offset: int = 0
+    ) -> TradeHistory:
         """
         Get comprehensive trade history for a market.
 
@@ -241,7 +242,9 @@ class _ClobClient:
             # If we have trades and a token_id filter, filter client-side
             if token_id and isinstance(raw_trades, list):
                 # Filter trades by token_id if provided
-                filtered_trades = [trade for trade in raw_trades if trade.get("market") == token_id]
+                filtered_trades = [
+                    trade for trade in raw_trades if trade.get("market") == token_id
+                ]
                 raw_trades = filtered_trades
 
             # Apply limit if specified
@@ -292,7 +295,7 @@ class _ClobClient:
         end: int | None = None,
         side: str | None = None,
         sort_by: str = "TIMESTAMP",
-        sort_direction: str = "DESC"
+        sort_direction: str = "DESC",
     ) -> UserActivity:
         """
         Get user's on-chain activity history.
@@ -322,7 +325,7 @@ class _ClobClient:
             "limit": min(limit, 500),  # Ensure we don't exceed API limit
             "offset": offset,
             "sortBy": sort_by,
-            "sortDirection": sort_direction
+            "sortDirection": sort_direction,
         }
 
         # Add optional filters
@@ -353,7 +356,7 @@ class _ClobClient:
         end: int | None = None,
         side: str | None = None,
         sort_by: str = "TIMESTAMP",
-        sort_direction: str = "DESC"
+        sort_direction: str = "DESC",
     ) -> UserActivity:
         """
         Get current user's on-chain activity history.
@@ -386,11 +389,13 @@ class _ClobClient:
             end=end,
             side=side,
             sort_by=sort_by,
-            sort_direction=sort_direction
+            sort_direction=sort_direction,
         )
 
     # Trading execution methods
-    def submit_market_order(self, token_id: str, side: str, size: float) -> dict[str, Any]:
+    def submit_market_order(
+        self, token_id: str, side: str, size: float
+    ) -> dict[str, Any]:
         """
         Submit a market order for immediate execution.
 
@@ -401,9 +406,7 @@ class _ClobClient:
         """
         # Create MarketOrderArgs and use create_market_order + post_order
         market_order_args = MarketOrderArgs(
-            token_id=token_id,
-            amount=size,
-            side=side.upper()
+            token_id=token_id, amount=size, side=side.upper()
         )
         order = self._py_client.create_market_order(market_order_args)
         return self._py_client.post_order(order)
@@ -428,7 +431,7 @@ class _ClobClient:
             "token_id": request.token_id,
             "price": request.price,
             "size": request.size,
-            "side": request.side.value.upper()
+            "side": request.side.value.upper(),
         }
 
         # Add expiration for GTD orders
@@ -443,7 +446,7 @@ class _ClobClient:
             PMOrderType.GTC: OrderType.GTC,
             PMOrderType.FOK: OrderType.FOK,
             PMOrderType.FAK: OrderType.FAK,
-            PMOrderType.GTD: OrderType.GTD
+            PMOrderType.GTD: OrderType.GTD,
         }
 
         py_order_type = order_type_map[request.order_type]
@@ -467,7 +470,9 @@ class _ClobClient:
 
         return OrderList.from_raw_response(raw_response)
 
-    def get_user_position(self, proxy_wallet_address: str, market: str | None = None) -> UserPositions:
+    def get_user_position(
+        self, proxy_wallet_address: str, market: str | None = None
+    ) -> UserPositions:
         """
         Get user position.
 
@@ -501,13 +506,12 @@ class _ClobClient:
         """
         # Get user address from the py_clob_client
         user_address = self._py_client.get_address()
-        return self.get_user_position(
-            proxy_wallet_address=user_address,
-            market=market
-        )
+        return self.get_user_position(proxy_wallet_address=user_address, market=market)
 
     # Balance and Allowance Methods
-    def get_balance_allowance(self, asset_type: str = "COLLATERAL", token_id: str | None = None) -> dict[str, Any]:
+    def get_balance_allowance(
+        self, asset_type: str = "COLLATERAL", token_id: str | None = None
+    ) -> dict[str, Any]:
         """
         Get the current balance and allowance for USDC (collateral) or conditional tokens.
 
@@ -521,11 +525,13 @@ class _ClobClient:
         params = BalanceAllowanceParams(
             asset_type="COLLATERAL" if asset_type == "COLLATERAL" else "CONDITIONAL",
             token_id=token_id,
-            signature_type=-1  # Will be set automatically by the client
+            signature_type=-1,  # Will be set automatically by the client
         )
         return self._py_client.get_balance_allowance(params)
 
-    def update_balance_allowance(self, asset_type: str = "COLLATERAL", token_id: str | None = None) -> dict[str, Any]:
+    def update_balance_allowance(
+        self, asset_type: str = "COLLATERAL", token_id: str | None = None
+    ) -> dict[str, Any]:
         """
         Update (refresh) the balance and allowance information.
 
@@ -539,7 +545,7 @@ class _ClobClient:
         params = BalanceAllowanceParams(
             asset_type="COLLATERAL" if asset_type == "COLLATERAL" else "CONDITIONAL",
             token_id=token_id,
-            signature_type=-1  # Will be set automatically by the client
+            signature_type=-1,  # Will be set automatically by the client
         )
         return self._py_client.update_balance_allowance(params)
 
@@ -585,7 +591,7 @@ class _ClobClient:
         start_ts: int | None = None,
         end_ts: int | None = None,
         interval: str | None = None,
-        fidelity: int | None = None
+        fidelity: int | None = None,
     ) -> PricesHistory:
         """
         Get price history for a specific market.
@@ -627,7 +633,7 @@ class _ClobClient:
             start_ts=start_ts,
             end_ts=end_ts,
             interval=interval,
-            fidelity=fidelity
+            fidelity=fidelity,
         )
 
     # Convenience methods

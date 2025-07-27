@@ -49,5 +49,5 @@ __all__ = [
     "TradeHistory",
     "UserActivity",
     "UserPositions",
-    "UserProfile"
+    "UserProfile",
 ]

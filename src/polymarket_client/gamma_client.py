@@ -73,8 +73,12 @@ class _GammaClient:
         endpoints = {
             "gamma": url,
             "clob": config_kwargs.pop("clob_url", "https://clob.polymarket.com"),
-            "info": config_kwargs.pop("info_url", "https://strapi-matic.polymarket.com"),
-            "neg_risk": config_kwargs.pop("neg_risk_url", "https://neg-risk-api.polymarket.com")
+            "info": config_kwargs.pop(
+                "info_url", "https://strapi-matic.polymarket.com"
+            ),
+            "neg_risk": config_kwargs.pop(
+                "neg_risk_url", "https://neg-risk-api.polymarket.com"
+            ),
         }
 
         config = PolymarketConfig(
@@ -83,7 +87,7 @@ class _GammaClient:
             api_secret=config_kwargs.pop("api_secret", ""),
             api_passphrase=config_kwargs.pop("api_passphrase", ""),
             pk=config_kwargs.pop("pk", ""),
-            **config_kwargs
+            **config_kwargs,
         )
         return cls(config)
 
@@ -109,8 +113,8 @@ class _GammaClient:
                     total=self.config.max_retries,
                     backoff_factor=0.3,
                     status_forcelist=[429, 500, 502, 503, 504],
-                    allowed_methods=["GET", "POST", "PUT", "DELETE"]
-                )
+                    allowed_methods=["GET", "POST", "PUT", "DELETE"],
+                ),
             )
         else:
             # Create regular session without rate limiting
@@ -121,7 +125,7 @@ class _GammaClient:
                 total=self.config.max_retries,
                 backoff_factor=0.3,
                 status_forcelist=[429, 500, 502, 503, 504],
-                allowed_methods=["GET", "POST", "PUT", "DELETE"]
+                allowed_methods=["GET", "POST", "PUT", "DELETE"],
             )
             adapter = HTTPAdapter(max_retries=retry)
             session.mount("https://", adapter)
@@ -131,11 +135,13 @@ class _GammaClient:
         session.timeout = self.config.timeout
 
         # Set standard headers
-        session.headers.update({
-            "User-Agent": f"polymarket-sdk/{self.config.sdk_version}",
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-        })
+        session.headers.update(
+            {
+                "User-Agent": f"polymarket-sdk/{self.config.sdk_version}",
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+            }
+        )
 
         return session
 
@@ -169,7 +175,7 @@ class _GammaClient:
         tag: str | list[str] | None = None,
         tag_id: int | list[int] | None = None,
         related_tags: bool | None = None,
-        tag_slug: str | list[str] | None = None
+        tag_slug: str | list[str] | None = None,
     ) -> EventList:
         """Retrieves events from the Gamma API.
 
@@ -237,7 +243,7 @@ class _GammaClient:
             tag=tag,
             tag_id=tag_id,
             related_tags=related_tags,
-            tag_slug=tag_slug
+            tag_slug=tag_slug,
         )
 
         # Convert to EventList with pagination metadata
@@ -245,7 +251,7 @@ class _GammaClient:
             events=paginated_response.data,
             total=len(paginated_response.data),
             limit=limit,
-            offset=offset
+            offset=offset,
         )
 
     def get_events_paginated(
@@ -278,7 +284,7 @@ class _GammaClient:
         tag: str | list[str] | None = None,
         tag_id: int | list[int] | None = None,
         related_tags: bool | None = None,
-        tag_slug: str | list[str] | None = None
+        tag_slug: str | list[str] | None = None,
     ) -> PaginatedResponse[Event]:
         """Retrieves events from the Gamma API with pagination metadata.
 
@@ -329,13 +335,14 @@ class _GammaClient:
         url = f"{self.base_url}/events"
 
         # Determine page size for API requests
-        page_size = min(limit, self.config.max_page_size) if not auto_paginate else self.config.default_page_size
+        page_size = (
+            min(limit, self.config.max_page_size)
+            if not auto_paginate
+            else self.config.default_page_size
+        )
 
         # Build parameters dict with all possible filters
-        params = {
-            "limit": page_size,
-            "offset": offset
-        }
+        params = {"limit": page_size, "offset": offset}
 
         # Add optional parameters only if they are provided
         if order is not None:
@@ -381,8 +388,12 @@ class _GammaClient:
             params["start_date_max"] = start_date_max
         if end_date_min is not None:
             params["end_date_min"] = end_date_min
-        elif active is True:  # Only set default end_date_min if we're filtering for active events
-            params["end_date_min"] = datetime.datetime.now().replace(microsecond=0).isoformat() + "Z"
+        elif (
+            active is True
+        ):  # Only set default end_date_min if we're filtering for active events
+            params["end_date_min"] = (
+                datetime.datetime.now().replace(microsecond=0).isoformat() + "Z"
+            )
         if end_date_max is not None:
             params["end_date_max"] = end_date_max
 
@@ -432,25 +443,15 @@ class _GammaClient:
             except requests.HTTPError as e:
                 msg = f"API request failed: {e}"
                 raise PolymarketAPIError(
-                    msg,
-                    status_code=resp.status_code if resp else None,
-                    endpoint=url
+                    msg, status_code=resp.status_code if resp else None, endpoint=url
                 )
             except requests.RequestException as e:
                 msg = f"Failed to fetch events: {e}"
-                raise PolymarketNetworkError(
-                    msg,
-                    original_error=e,
-                    endpoint=url
-                )
+                raise PolymarketNetworkError(msg, original_error=e, endpoint=url)
 
             if not isinstance(events, list):
                 msg = f"Unexpected response format: expected list, got {type(events).__name__}"
-                raise PolymarketAPIError(
-                    msg,
-                    response_data=events,
-                    endpoint=url
-                )
+                raise PolymarketAPIError(msg, response_data=events, endpoint=url)
 
             all_events.extend(events)
 
@@ -475,19 +476,13 @@ class _GammaClient:
                 offset=offset,
                 limit=page_size,
                 total_returned=len(validated_events),
-                requested_limit=request_params.get("limit", page_size)
+                requested_limit=request_params.get("limit", page_size),
             )
 
-            return PaginatedResponse(
-                data=validated_events,
-                pagination=pagination_info
-            )
+            return PaginatedResponse(data=validated_events, pagination=pagination_info)
         except Exception as e:
             msg = f"Failed to validate event data: {e}"
-            raise PolymarketValidationError(
-                msg,
-                details={"raw_events": all_events}
-            )
+            raise PolymarketValidationError(msg, details={"raw_events": all_events})
 
     def iter_events(
         self,
@@ -518,8 +513,8 @@ class _GammaClient:
         tag: str | list[str] | None = None,
         tag_id: int | list[int] | None = None,
         related_tags: bool | None = None,
-        tag_slug: str | list[str] | None = None
-    ) -> Generator[Event, None, None]:
+        tag_slug: str | list[str] | None = None,
+    ) -> Generator[Event]:
         """Generator that yields events one page at a time.
 
         This is memory-efficient for processing large datasets.
@@ -561,11 +556,7 @@ class _GammaClient:
         # Validate page size
         if page_size > self.config.max_page_size:
             msg = f"Page size {page_size} exceeds maximum allowed {self.config.max_page_size}"
-            raise PolymarketValidationError(
-                msg,
-                field="page_size",
-                value=page_size
-            )
+            raise PolymarketValidationError(msg, field="page_size", value=page_size)
 
         current_offset = offset
 
@@ -593,7 +584,7 @@ class _GammaClient:
                 tag=tag,
                 tag_id=tag_id,
                 related_tags=related_tags,
-                tag_slug=tag_slug
+                tag_slug=tag_slug,
             )
 
             # Yield each event
@@ -617,11 +608,7 @@ class _GammaClient:
         """
         if limit > self.config.max_page_size:
             msg = f"Limit {limit} exceeds maximum allowed {self.config.max_page_size}"
-            raise PolymarketValidationError(
-                msg,
-                field="limit",
-                value=limit
-            )
+            raise PolymarketValidationError(msg, field="limit", value=limit)
 
         # Warn about potentially large requests
         if self.config.warn_large_requests:
@@ -630,14 +617,14 @@ class _GammaClient:
                     f"Requesting {limit} events with auto_paginate=True may consume significant memory. "
                     f"Consider using iter_events() for large datasets or set auto_paginate=False.",
                     UserWarning,
-                    stacklevel=3
+                    stacklevel=3,
                 )
             elif auto_paginate and limit > self.config.max_total_results:
                 warnings.warn(
                     f"Requesting {limit} events exceeds recommended maximum of {self.config.max_total_results}. "
                     f"This may cause memory issues. Consider using iter_events() for streaming.",
                     UserWarning,
-                    stacklevel=3
+                    stacklevel=3,
                 )
 
     def _validate_parameters(
@@ -645,7 +632,7 @@ class _GammaClient:
         order: str | None,
         ascending: bool,
         tag_id: int | list[int] | None,
-        related_tags: bool | None
+        related_tags: bool | None,
     ) -> None:
         """Validate parameter combinations and requirements.
 
@@ -661,19 +648,13 @@ class _GammaClient:
         # ascending parameter requires order parameter
         if order is None and ascending is not True:
             msg = "The 'ascending' parameter requires the 'order' parameter to be specified"
-            raise PolymarketValidationError(
-                msg,
-                field="ascending",
-                value=ascending
-            )
+            raise PolymarketValidationError(msg, field="ascending", value=ascending)
 
         # related_tags parameter requires tag_id parameter
         if related_tags is not None and tag_id is None:
             msg = "The 'related_tags' parameter requires the 'tag_id' parameter to be specified"
             raise PolymarketValidationError(
-                msg,
-                field="related_tags",
-                value=related_tags
+                msg, field="related_tags", value=related_tags
             )
 
     def health_check(self) -> dict[str, Any]:
@@ -689,11 +670,7 @@ class _GammaClient:
             return {
                 "status": "healthy",
                 "endpoint": self.base_url,
-                "response_time_ms": resp.elapsed.total_seconds() * 1000
+                "response_time_ms": resp.elapsed.total_seconds() * 1000,
             }
         except Exception as e:
-            return {
-                "status": "unhealthy",
-                "endpoint": self.base_url,
-                "error": str(e)
-            }
+            return {"status": "unhealthy", "endpoint": self.base_url, "error": str(e)}

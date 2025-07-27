@@ -24,13 +24,13 @@ class CancelResponse(BaseModel):
         if isinstance(raw_response, dict):
             return cls(
                 canceled=raw_response.get("canceled", []),
-                not_canceled=raw_response.get("not_canceled", {})
+                not_canceled=raw_response.get("not_canceled", {}),
             )
 
         # Handle unexpected response format
         return cls(
             canceled=[],
-            not_canceled={"error": f"Unexpected response format: {type(raw_response)}"}
+            not_canceled={"error": f"Unexpected response format: {type(raw_response)}"},
         )
 
     @property

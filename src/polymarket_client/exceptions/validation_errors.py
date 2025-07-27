@@ -17,7 +17,7 @@ class PolymarketValidationError(PolymarketError):
         message: str,
         field: str | None = None,
         value: Any | None = None,
-        errors: dict[str, list[str]] | None = None
+        errors: dict[str, list[str]] | None = None,
     ) -> None:
         """Initialize the validation error.
 
@@ -51,11 +51,7 @@ class PolymarketFieldValidationError(PolymarketValidationError):
     """
 
     def __init__(
-        self,
-        field: str,
-        message: str,
-        value: Any | None = None,
-        **kwargs
+        self, field: str, message: str, value: Any | None = None, **kwargs
     ) -> None:
         super().__init__(message, field=field, value=value, **kwargs)
 
@@ -70,11 +66,7 @@ class PolymarketTypeValidationError(PolymarketValidationError):
     """
 
     def __init__(
-        self,
-        field: str,
-        expected_type: str,
-        actual_type: str,
-        value: Any | None = None
+        self, field: str, expected_type: str, actual_type: str, value: Any | None = None
     ) -> None:
         message = f"Expected {expected_type}, got {actual_type}"
         super().__init__(message, field=field, value=value)
@@ -96,7 +88,7 @@ class PolymarketRangeValidationError(PolymarketValidationError):
         field: str,
         value: Any,
         min_value: Any | None = None,
-        max_value: Any | None = None
+        max_value: Any | None = None,
     ) -> None:
         if min_value is not None and max_value is not None:
             message = f"Value must be between {min_value} and {max_value}"
@@ -134,11 +126,7 @@ class PolymarketFormatValidationError(PolymarketValidationError):
     """
 
     def __init__(
-        self,
-        field: str,
-        value: Any,
-        expected_format: str,
-        pattern: str | None = None
+        self, field: str, value: Any, expected_format: str, pattern: str | None = None
     ) -> None:
         message = f"Invalid format. Expected: {expected_format}"
         if pattern:

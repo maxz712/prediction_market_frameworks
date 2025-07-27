@@ -18,7 +18,7 @@ class PolymarketAPIError(PolymarketError):
         status_code: int | None = None,
         response_data: dict[str, Any] | None = None,
         request_id: str | None = None,
-        endpoint: str | None = None
+        endpoint: str | None = None,
     ) -> None:
         """Initialize the API error.
 
@@ -80,7 +80,7 @@ class PolymarketRateLimitError(PolymarketAPIError):
         self,
         message: str = "Rate limit exceeded",
         retry_after: int | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize the rate limit error.
 

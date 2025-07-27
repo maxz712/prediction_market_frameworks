@@ -24,6 +24,7 @@ class BookLevel(BaseModel):
     class Config:
         frozen = True
 
+
 class OrderBook(BaseModel):
     market_id: str
     asset_id: str
@@ -73,12 +74,24 @@ class OrderBook(BaseModel):
             raise ValueError(msg)
 
     @classmethod
-    def from_raw_data(cls, market_id: str, asset_id: str, timestamp: int, hash: str,
-                      raw_bids: list[Any], raw_asks: list[Any]) -> OrderBook:
+    def from_raw_data(
+        cls,
+        market_id: str,
+        asset_id: str,
+        timestamp: int,
+        hash: str,
+        raw_bids: list[Any],
+        raw_asks: list[Any],
+    ) -> OrderBook:
         """Create OrderBook from raw bid/ask data with level conversion."""
+
         def convert_levels(raw_levels: list[Any], is_bid: bool = False) -> list[dict]:
             parsed = [(float(r.price), float(r.size)) for r in raw_levels]
-            sorted_levels = sorted(parsed, key=lambda p: -p[0]) if is_bid else sorted(parsed, key=lambda p: p[0])
+            sorted_levels = (
+                sorted(parsed, key=lambda p: -p[0])
+                if is_bid
+                else sorted(parsed, key=lambda p: p[0])
+            )
 
             levels = []
             total = 0.0
@@ -87,14 +100,16 @@ class OrderBook(BaseModel):
                 levels.append({"price": price, "volume": vol, "total": total})
             return levels
 
-        return cls.model_validate({
-            "market_id": market_id,
-            "asset_id": asset_id,
-            "timestamp": timestamp,
-            "hash": hash,
-            "bids": convert_levels(raw_bids, is_bid=True),
-            "asks": convert_levels(raw_asks, is_bid=False)
-        })
+        return cls.model_validate(
+            {
+                "market_id": market_id,
+                "asset_id": asset_id,
+                "timestamp": timestamp,
+                "hash": hash,
+                "bids": convert_levels(raw_bids, is_bid=True),
+                "asks": convert_levels(raw_asks, is_bid=False),
+            }
+        )
 
     class Config:
         frozen = True
