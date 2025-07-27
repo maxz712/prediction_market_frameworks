@@ -4,6 +4,7 @@ from .clob_client import _ClobClient
 from .configs.polymarket_configs import PolymarketConfig
 from .exceptions import PolymarketConfigurationError
 from .gamma_client import _GammaClient
+from .logger import get_logger, log_user_action
 from .models import (
     CancelResponse,
     Event,
@@ -46,6 +47,7 @@ class PolymarketClient:
         self.config = config
         self.gamma_client = _GammaClient(config)
         self.clob_client = _ClobClient(config)
+        self._logger = get_logger("polymarket_client")
 
     # Event-related methods (Gamma API)
     def get_events(
@@ -530,6 +532,11 @@ class PolymarketClient:
         Returns:
             CancelResponse: Response with cancellation results
         """
+        log_user_action(
+            self._logger,
+            "cancel_order",
+            order_id=order_id
+        )
         return self.clob_client.cancel_order(order_id)
 
     def cancel_orders(self, order_ids: list[str]) -> CancelResponse:
@@ -541,6 +548,11 @@ class PolymarketClient:
         Returns:
             CancelResponse: Response with cancellation results
         """
+        log_user_action(
+            self._logger,
+            "cancel_orders",
+            additional_data={"order_count": len(order_ids), "order_ids": order_ids}
+        )
         return self.clob_client.cancel_orders(order_ids)
 
     def cancel_all_orders(self) -> CancelResponse:
@@ -549,6 +561,7 @@ class PolymarketClient:
         Returns:
             CancelResponse: Response with cancellation results
         """
+        log_user_action(self._logger, "cancel_all_orders")
         return self.clob_client.cancel_all()
 
     def submit_limit_order(self, request: LimitOrderRequest) -> OrderResponse:
@@ -561,6 +574,17 @@ class PolymarketClient:
         Returns:
             OrderResponse: Response with order submission details
         """
+        log_user_action(
+            self._logger,
+            "submit_limit_order",
+            market_id=getattr(request, 'token_id', None),
+            additional_data={
+                "order_type": getattr(request, 'order_type', None),
+                "side": getattr(request, 'side', None),
+                "size": getattr(request, 'size', None),
+                "price": getattr(request, 'price', None)
+            }
+        )
         return self.clob_client.submit_limit_order(request)
 
     def get_open_orders(self, market: str | None = None) -> OrderList:

@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.polymarket_client import PolymarketClient, PolymarketConfigurationError
+from polymarket_client import PolymarketClient, PolymarketConfigurationError
 
 
 class TestPolymarketClient:
@@ -50,7 +50,7 @@ class TestPolymarketClient:
 
         assert client.clob is client.clob_client
 
-    @patch("src.polymarket_client.gamma_client._GammaClient.get_events")
+    @patch("polymarket_client.gamma_client._GammaClient.get_events")
     def test_get_events_delegation(self, mock_get_events, test_config, sample_event_data):
         """Test that get_events delegates to gamma client."""
         mock_get_events.return_value = [sample_event_data]
@@ -63,7 +63,7 @@ class TestPolymarketClient:
         )
         assert result == [sample_event_data]
 
-    @patch("src.polymarket_client.gamma_client._GammaClient.get_events")
+    @patch("polymarket_client.gamma_client._GammaClient.get_events")
     def test_get_active_events(self, mock_get_events, test_config, sample_event_data):
         """Test get_active_events method."""
         mock_get_events.return_value = [sample_event_data]
@@ -76,7 +76,7 @@ class TestPolymarketClient:
         )
         assert result == [sample_event_data]
 
-    @patch("src.polymarket_client.clob_client._ClobClient.get_market")
+    @patch("polymarket_client.clob_client._ClobClient.get_market")
     def test_get_market_delegation(self, mock_get_market, test_config, sample_market_data):
         """Test that get_market delegates to clob client."""
         mock_get_market.return_value = sample_market_data

@@ -5,12 +5,12 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 
-from src.polymarket_client.exceptions import (
+from polymarket_client.exceptions import (
     PolymarketAPIError,
     PolymarketNetworkError,
     PolymarketValidationError,
 )
-from src.polymarket_client.gamma_client import _GammaClient as GammaClient
+from polymarket_client.gamma_client import _GammaClient as GammaClient
 
 
 class TestGammaClient:
@@ -62,7 +62,7 @@ class TestGammaClient:
         assert "polymarket-sdk" in session.headers["User-Agent"]
         assert session.headers["Accept"] == "application/json"
 
-    @patch("src.polymarket_client.gamma_client.requests.Session.get")
+    @patch("polymarket_client.gamma_client.requests.Session.get")
     def test_get_events_uses_config_defaults(self, mock_get, test_config, sample_event_data):
         """Test that get_events uses config defaults when parameters not provided."""
         mock_response = Mock()
@@ -90,7 +90,7 @@ class TestGammaClient:
         assert "exceeds maximum allowed" in str(exc_info.value)
         assert exc_info.value.field == "limit"
 
-    @patch("src.polymarket_client.gamma_client.requests.Session.get")
+    @patch("polymarket_client.gamma_client.requests.Session.get")
     def test_get_events_handles_network_error(self, mock_get, test_config):
         """Test that get_events properly handles network errors."""
         mock_get.side_effect = requests.ConnectionError("Connection failed")
@@ -103,7 +103,7 @@ class TestGammaClient:
         assert "Failed to fetch events" in str(exc_info.value)
         assert exc_info.value.original_error is not None
 
-    @patch("src.polymarket_client.gamma_client.requests.Session.get")
+    @patch("polymarket_client.gamma_client.requests.Session.get")
     def test_get_events_handles_http_error(self, mock_get, test_config):
         """Test that get_events properly handles HTTP errors."""
         mock_response = Mock()
@@ -119,7 +119,7 @@ class TestGammaClient:
         assert "API request failed" in str(exc_info.value)
         assert exc_info.value.status_code == 400
 
-    @patch("src.polymarket_client.gamma_client.requests.Session.get")
+    @patch("polymarket_client.gamma_client.requests.Session.get")
     def test_get_events_handles_invalid_response_format(self, mock_get, test_config):
         """Test that get_events handles invalid response format."""
         mock_response = Mock()
@@ -134,7 +134,7 @@ class TestGammaClient:
 
         assert "Unexpected response format" in str(exc_info.value)
 
-    @patch("src.polymarket_client.gamma_client.requests.Session.get")
+    @patch("polymarket_client.gamma_client.requests.Session.get")
     def test_get_events_auto_pagination_disabled(self, mock_get, test_config, sample_event_data):
         """Test that auto_paginate=False stops after first page."""
         mock_response = Mock()
@@ -151,7 +151,7 @@ class TestGammaClient:
         assert mock_get.call_count == 1
         assert len(result) == 100
 
-    @patch("src.polymarket_client.gamma_client.requests.Session.get")
+    @patch("polymarket_client.gamma_client.requests.Session.get")
     def test_health_check_healthy(self, mock_get, test_config):
         """Test health_check when API is healthy."""
         mock_response = Mock()
@@ -166,7 +166,7 @@ class TestGammaClient:
         assert result["endpoint"] == client.base_url
         assert "response_time_ms" in result
 
-    @patch("src.polymarket_client.gamma_client.requests.Session.get")
+    @patch("polymarket_client.gamma_client.requests.Session.get")
     def test_health_check_unhealthy(self, mock_get, test_config):
         """Test health_check when API is unhealthy."""
         mock_get.side_effect = requests.ConnectionError("Connection failed")

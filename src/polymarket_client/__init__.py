@@ -25,6 +25,13 @@ from .exceptions import (
     PolymarketTypeValidationError,
     PolymarketValidationError,
 )
+from .logger import (
+    get_logger,
+    log_api_request,
+    log_api_response,
+    log_user_action,
+    setup_logging,
+)
 from .models import (
     Activity,
     ActivityMarket,
@@ -62,6 +69,13 @@ __all__ = [
     # Core client classes
     "PolymarketClient",
     "PolymarketConfig",
+
+    # Logging utilities
+    "setup_logging",
+    "get_logger",
+    "log_api_request",
+    "log_api_response",
+    "log_user_action",
 
     # Data models
     "Activity",
