@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.polymarket_client.configs.polymarket_configs import PolymarketConfig
+from src.configs.polymarket_configs import PolymarketConfig
 
 
 @pytest.fixture
