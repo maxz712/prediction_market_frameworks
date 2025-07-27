@@ -5,12 +5,12 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 
-from src.exceptions import (
+from src.polymarket_client.exceptions import (
     PolymarketAPIError,
     PolymarketNetworkError,
     PolymarketValidationError,
 )
-from src.gamma_client import _GammaClient as GammaClient
+from src.polymarket_client.gamma_client import _GammaClient as GammaClient
 
 
 class TestGammaClient:

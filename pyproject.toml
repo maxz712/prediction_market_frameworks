@@ -55,7 +55,7 @@ python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = [
-    "--cov=src",
+    "--cov=src/polymarket_client",
     "--cov-report=html",
     "--cov-report=term",
     "--cov-report=term-missing",
@@ -169,7 +169,7 @@ disable_error_code = ["name-defined"]
 
 # Coverage configuration
 [tool.coverage.run]
-source = ["src"]
+source = ["src/polymarket_client"]
 omit = [
     "*/tests/*",
     "*/test_*",

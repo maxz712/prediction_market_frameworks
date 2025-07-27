@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src import PolymarketClient, PolymarketConfigurationError
+from src.polymarket_client import PolymarketClient, PolymarketConfigurationError
 
 
 class TestPolymarketClient:

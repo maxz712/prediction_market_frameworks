@@ -2,7 +2,7 @@
 
 import os
 
-from src import (
+from src.polymarket_client import (
     PolymarketClient,
     PolymarketConfig,
     PolymarketError,
