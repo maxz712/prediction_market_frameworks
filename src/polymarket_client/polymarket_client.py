@@ -20,6 +20,7 @@ from .models import (
     UserActivity,
     UserPositions,
 )
+from .sanitization import InputSanitizer
 
 
 class PolymarketClient:
@@ -414,7 +415,10 @@ class PolymarketClient:
         Returns:
             Market: A Market model instance with the market data
         """
-        return self.clob_client.get_market(condition_id)
+        sanitized_condition_id = InputSanitizer.sanitize_token_id(condition_id)
+        if sanitized_condition_id is None:
+            raise ValueError("Invalid condition_id format")
+        return self.clob_client.get_market(sanitized_condition_id)
 
     # Order book and trading methods (CLOB API)
     def get_order_book(self, token_id: str) -> OrderBook:
@@ -442,7 +446,10 @@ class PolymarketClient:
                 spread = float(best_ask.price) - float(best_bid.price)
                 print(f"Current spread: {spread}")
         """
-        return self.clob_client.get_order_book(token_id)
+        sanitized_token_id = InputSanitizer.sanitize_token_id(token_id)
+        if sanitized_token_id is None:
+            raise ValueError("Invalid token_id format")
+        return self.clob_client.get_order_book(sanitized_token_id)
 
     def get_user_market_trades_history(self, token_id: str, limit: int = 100,
                                  offset: int = 0) -> TradeHistory:
@@ -532,12 +539,15 @@ class PolymarketClient:
         Returns:
             CancelResponse: Response with cancellation results
         """
+        sanitized_order_id = InputSanitizer.sanitize_order_id(order_id)
+        if sanitized_order_id is None:
+            raise ValueError("Invalid order_id format")
         log_user_action(
             self._logger,
             "cancel_order",
-            order_id=order_id
+            order_id=sanitized_order_id
         )
-        return self.clob_client.cancel_order(order_id)
+        return self.clob_client.cancel_order(sanitized_order_id)
 
     def cancel_orders(self, order_ids: list[str]) -> CancelResponse:
         """Cancel multiple orders.
@@ -577,12 +587,12 @@ class PolymarketClient:
         log_user_action(
             self._logger,
             "submit_limit_order",
-            market_id=getattr(request, 'token_id', None),
+            market_id=getattr(request, "token_id", None),
             additional_data={
-                "order_type": getattr(request, 'order_type', None),
-                "side": getattr(request, 'side', None),
-                "size": getattr(request, 'size', None),
-                "price": getattr(request, 'price', None)
+                "order_type": getattr(request, "order_type", None),
+                "side": getattr(request, "side", None),
+                "size": getattr(request, "size", None),
+                "price": getattr(request, "price", None)
             }
         )
         return self.clob_client.submit_limit_order(request)
@@ -608,7 +618,11 @@ class PolymarketClient:
         Returns:
             UserPositions: User positions data model
         """
-        return self.clob_client.get_user_position(proxy_wallet_address, market)
+        sanitized_address = InputSanitizer.sanitize_hex_address(proxy_wallet_address)
+        if sanitized_address is None:
+            raise ValueError("Invalid proxy_wallet_address format")
+        sanitized_market = InputSanitizer.sanitize_token_id(market) if market else None
+        return self.clob_client.get_user_position(sanitized_address, sanitized_market)
 
     def get_current_user_position(self, market: str | None = None) -> UserPositions:
         """Get current user position.

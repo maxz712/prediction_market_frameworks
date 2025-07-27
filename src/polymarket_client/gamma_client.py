@@ -409,16 +409,16 @@ class _GammaClient:
                 resp = self._session.get(url, params=request_params)
                 resp.raise_for_status()
                 events = resp.json()
+            except requests.HTTPError as e:
+                raise PolymarketAPIError(
+                    f"API request failed: {e}",
+                    status_code=resp.status_code if resp else None,
+                    endpoint=url
+                )
             except requests.RequestException as e:
                 raise PolymarketNetworkError(
                     f"Failed to fetch events: {e}",
                     original_error=e,
-                    endpoint=url
-                )
-            except requests.HTTPError as e:
-                raise PolymarketAPIError(
-                    f"API request failed: {e}",
-                    status_code=resp.status_code if "resp" in locals() else None,
                     endpoint=url
                 )
 

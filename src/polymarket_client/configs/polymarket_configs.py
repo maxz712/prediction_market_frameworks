@@ -34,6 +34,15 @@ class PolymarketConfig(BaseModel):
     enable_response_caching: bool = Field(default=False, description="Enable response caching")
     warn_large_requests: bool = Field(default=True, description="Warn when requesting large datasets")
 
+    # Performance monitoring settings
+    enable_performance_logging: bool = Field(default=True, description="Enable performance metrics logging")
+    log_memory_usage: bool = Field(default=False, description="Log memory usage statistics")
+    performance_log_threshold_ms: float = Field(default=1000.0, description="Log operations slower than this threshold")
+    log_level: str = Field(default="INFO", description="Logging level for performance metrics")
+    log_format: str = Field(default="structured", description="Log format: 'structured' or 'simple'")
+    enable_console_logging: bool = Field(default=True, description="Enable console logging")
+    log_file_path: str | None = Field(None, description="File path for log output")
+
     # SDK metadata
     sdk_version: str = Field(default="0.1.0", description="SDK version for User-Agent header")
 
@@ -74,14 +83,21 @@ class PolymarketConfig(BaseModel):
                  max_total_results_env: str = "POLYMARKET_MAX_TOTAL_RESULTS",
                  enable_auto_pagination_env: str = "POLYMARKET_ENABLE_AUTO_PAGINATION",
                  enable_response_caching_env: str = "POLYMARKET_ENABLE_RESPONSE_CACHING",
-                 warn_large_requests_env: str = "POLYMARKET_WARN_LARGE_REQUESTS") -> "PolymarketConfig":
+                 warn_large_requests_env: str = "POLYMARKET_WARN_LARGE_REQUESTS",
+                 enable_performance_logging_env: str = "POLYMARKET_ENABLE_PERFORMANCE_LOGGING",
+                 log_memory_usage_env: str = "POLYMARKET_LOG_MEMORY_USAGE",
+                 performance_log_threshold_ms_env: str = "POLYMARKET_PERFORMANCE_LOG_THRESHOLD_MS",
+                 log_level_env: str = "POLYMARKET_LOG_LEVEL",
+                 log_format_env: str = "POLYMARKET_LOG_FORMAT",
+                 enable_console_logging_env: str = "POLYMARKET_ENABLE_CONSOLE_LOGGING",
+                 log_file_path_env: str = "POLYMARKET_LOG_FILE_PATH") -> "PolymarketConfig":
         """Create config from environment variables."""
         config_data = {
             "api_key": os.getenv(api_key_env, ""),
             "api_secret": os.getenv(api_secret_env, ""),
             "api_passphrase": os.getenv(api_passphrase_env, ""),
             "pk": os.getenv(private_key_env, ""),
-            "wallet_proxy_address": os.getenv(wallet_proxy_address_env, "")
+            "wallet_proxy_address": os.getenv(wallet_proxy_address_env)
         }
 
         # Custom endpoints from environment variables
@@ -136,6 +152,35 @@ class PolymarketConfig(BaseModel):
         warn_large_requests_str = os.getenv(warn_large_requests_env)
         if warn_large_requests_str:
             config_data["warn_large_requests"] = warn_large_requests_str.lower() in ("true", "1", "yes")
+
+        # Performance monitoring settings
+        enable_performance_logging_str = os.getenv(enable_performance_logging_env)
+        if enable_performance_logging_str:
+            config_data["enable_performance_logging"] = enable_performance_logging_str.lower() in ("true", "1", "yes")
+
+        log_memory_usage_str = os.getenv(log_memory_usage_env)
+        if log_memory_usage_str:
+            config_data["log_memory_usage"] = log_memory_usage_str.lower() in ("true", "1", "yes")
+
+        performance_log_threshold_ms_str = os.getenv(performance_log_threshold_ms_env)
+        if performance_log_threshold_ms_str:
+            config_data["performance_log_threshold_ms"] = float(performance_log_threshold_ms_str)
+
+        log_level_str = os.getenv(log_level_env)
+        if log_level_str:
+            config_data["log_level"] = log_level_str
+
+        log_format_str = os.getenv(log_format_env)
+        if log_format_str:
+            config_data["log_format"] = log_format_str
+
+        enable_console_logging_str = os.getenv(enable_console_logging_env)
+        if enable_console_logging_str:
+            config_data["enable_console_logging"] = enable_console_logging_str.lower() in ("true", "1", "yes")
+
+        log_file_path_str = os.getenv(log_file_path_env)
+        if log_file_path_str:
+            config_data["log_file_path"] = log_file_path_str
 
         return cls(**config_data)
 

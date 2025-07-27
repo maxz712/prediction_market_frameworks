@@ -14,7 +14,7 @@ def test_config():
         api_key="test_api_key",
         api_secret="test_api_secret",
         api_passphrase="test_passphrase",
-        pk="test_private_key",
+        pk="0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         endpoints={
             "gamma": "https://test-gamma.example.com",
             "clob": "https://test-clob.example.com",
@@ -38,16 +38,33 @@ def sample_event_data():
     """Sample event data for testing."""
     return {
         "id": "test_event_id",
+        "ticker": "TEST",
         "title": "Test Event",
         "description": "A test event",
         "slug": "test-event",
-        "start_date": "2024-01-01T00:00:00Z",
-        "end_date": "2024-12-31T23:59:59Z",
+        "startDate": "2024-01-01T00:00:00Z",
+        "endDate": "2024-12-31T23:59:59Z",
+        "image": "https://example.com/image.png",
+        "icon": "https://example.com/icon.png",
         "active": True,
         "closed": False,
+        "archived": False,
+        "new": False,
+        "featured": False,
+        "restricted": False,
+        "openInterest": "0",
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-01T00:00:00Z",
+        "enableOrderBook": True,
+        "cyom": False,
+        "showAllOutcomes": True,
+        "showMarketImages": True,
+        "enableNegRisk": False,
+        "negRiskAugmented": False,
+        "pendingDeployment": False,
+        "deploying": False,
         "tags": [],
-        "markets": [],
-        "clob_rewards": []
+        "markets": []
     }
 
 

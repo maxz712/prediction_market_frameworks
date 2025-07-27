@@ -1,6 +1,9 @@
 import json
 import logging
 import sys
+import time
+from collections.abc import Generator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from typing import Any
 
@@ -215,3 +218,217 @@ def log_user_action(
         extra_data.update(additional_data)
 
     logger.info("User action: %s", action, extra=extra_data)
+
+
+class PerformanceMetrics:
+    """Class for collecting and logging performance metrics."""
+
+    def __init__(self, logger: logging.Logger) -> None:
+        """Initialize performance metrics collector.
+        
+        Args:
+            logger: Logger instance for metrics logging
+        """
+        self.logger = logger
+        self._operation_counts: dict[str, int] = {}
+        self._operation_times: dict[str, list[float]] = {}
+
+    def record_operation(
+        self,
+        operation: str,
+        duration_ms: float,
+        success: bool = True,
+        metadata: dict[str, Any] | None = None
+    ) -> None:
+        """Record a completed operation with its performance data.
+        
+        Args:
+            operation: Name of the operation
+            duration_ms: Time taken in milliseconds
+            success: Whether the operation succeeded
+            metadata: Additional context data
+        """
+        # Track operation counts and times for aggregation
+        if operation not in self._operation_counts:
+            self._operation_counts[operation] = 0
+            self._operation_times[operation] = []
+
+        self._operation_counts[operation] += 1
+        self._operation_times[operation].append(duration_ms)
+
+        # Log individual operation metrics
+        extra_data = {
+            "event_type": "performance_metric",
+            "operation": operation,
+            "duration_ms": duration_ms,
+            "success": success,
+            "total_count": self._operation_counts[operation],
+        }
+
+        if metadata:
+            extra_data["metadata"] = metadata
+
+        self.logger.info(
+            "Operation completed: %s (%.2fms)",
+            operation,
+            duration_ms,
+            extra=extra_data
+        )
+
+    def get_operation_stats(self, operation: str) -> dict[str, float] | None:
+        """Get aggregated statistics for an operation.
+        
+        Args:
+            operation: Name of the operation
+            
+        Returns:
+            Dictionary with operation statistics or None if not found
+        """
+        if operation not in self._operation_times:
+            return None
+
+        times = self._operation_times[operation]
+        return {
+            "count": len(times),
+            "min_ms": min(times),
+            "max_ms": max(times),
+            "avg_ms": sum(times) / len(times),
+            "total_ms": sum(times),
+        }
+
+    def log_operation_summary(self, operation: str) -> None:
+        """Log aggregated statistics for an operation.
+        
+        Args:
+            operation: Name of the operation
+        """
+        stats = self.get_operation_stats(operation)
+        if not stats:
+            return
+
+        self.logger.info(
+            "Operation summary: %s",
+            operation,
+            extra={
+                "event_type": "operation_summary",
+                "operation": operation,
+                "statistics": stats,
+            }
+        )
+
+    def reset_metrics(self) -> None:
+        """Reset all collected metrics."""
+        self._operation_counts.clear()
+        self._operation_times.clear()
+
+
+@contextmanager
+def measure_performance(
+    logger: logging.Logger,
+    operation: str,
+    metadata: dict[str, Any] | None = None
+) -> Generator[None, None, None]:
+    """Context manager for measuring operation performance.
+    
+    Args:
+        logger: Logger instance
+        operation: Name of the operation being measured
+        metadata: Additional context data
+        
+    Yields:
+        None
+        
+    Example:
+        with measure_performance(logger, "api_call", {"endpoint": "/markets"}):
+            response = make_api_call()
+    """
+    start_time = time.perf_counter()
+    success = True
+
+    try:
+        yield
+    except Exception:
+        success = False
+        raise
+    finally:
+        end_time = time.perf_counter()
+        duration_ms = (end_time - start_time) * 1000
+
+        extra_data = {
+            "event_type": "performance_metric",
+            "operation": operation,
+            "duration_ms": duration_ms,
+            "success": success,
+        }
+
+        if metadata:
+            extra_data["metadata"] = metadata
+
+        logger.info(
+            "Operation %s: %.2fms (%s)",
+            operation,
+            duration_ms,
+            "success" if success else "failed",
+            extra=extra_data
+        )
+
+
+def log_memory_usage(
+    logger: logging.Logger,
+    operation: str | None = None,
+    metadata: dict[str, Any] | None = None
+) -> None:
+    """Log current memory usage statistics.
+    
+    Args:
+        logger: Logger instance
+        operation: Optional operation context
+        metadata: Additional context data
+    """
+    try:
+        import os
+
+        import psutil
+
+        process = psutil.Process(os.getpid())
+        memory_info = process.memory_info()
+
+        extra_data = {
+            "event_type": "memory_usage",
+            "rss_mb": memory_info.rss / 1024 / 1024,
+            "vms_mb": memory_info.vms / 1024 / 1024,
+            "cpu_percent": process.cpu_percent(),
+        }
+
+        if operation:
+            extra_data["operation"] = operation
+
+        if metadata:
+            extra_data["metadata"] = metadata
+
+        logger.info(
+            "Memory usage: %.1f MB RSS, %.1f MB VMS",
+            extra_data["rss_mb"],
+            extra_data["vms_mb"],
+            extra=extra_data
+        )
+
+    except ImportError:
+        logger.warning(
+            "psutil not available for memory monitoring",
+            extra={"event_type": "memory_usage_unavailable"}
+        )
+
+
+def create_performance_logger(name: str) -> tuple[logging.Logger, PerformanceMetrics]:
+    """Create a logger and performance metrics collector.
+    
+    Args:
+        name: Logger name
+        
+    Returns:
+        Tuple of (logger, performance_metrics)
+    """
+    logger = get_logger(name)
+    metrics = PerformanceMetrics(logger)
+    return logger, metrics

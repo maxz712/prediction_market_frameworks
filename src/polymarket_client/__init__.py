@@ -64,11 +64,15 @@ from .models import (
     UserProfile,
 )
 from .polymarket_client import PolymarketClient
+from .sanitization import InputSanitizer
 
 __all__ = [
     # Core client classes
     "PolymarketClient",
     "PolymarketConfig",
+
+    # Input sanitization
+    "InputSanitizer",
 
     # Logging utilities
     "setup_logging",

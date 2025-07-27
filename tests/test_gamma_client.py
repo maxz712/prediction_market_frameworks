@@ -35,7 +35,7 @@ class TestGammaClient:
         "POLYMARKET_API_KEY": "test_key",
         "POLYMARKET_API_SECRET": "test_secret",
         "POLYMARKET_API_PASSPHRASE": "test_passphrase",
-        "POLYMARKET_PRIVATE_KEY": "test_pk"
+        "POLYMARKET_PRIVATE_KEY": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
     })
     def test_from_env_factory_method(self):
         """Test from_env factory method."""
@@ -48,7 +48,7 @@ class TestGammaClient:
         """Test from_url factory method for backward compatibility."""
         url = "https://test-gamma.example.com"
         client = GammaClient.from_url(url, api_key="test", api_secret="test",
-                                     api_passphrase="test", pk="test")
+                                     api_passphrase="test", pk="0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
 
         assert isinstance(client, GammaClient)
         assert client.base_url == url
