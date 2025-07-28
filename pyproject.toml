@@ -25,14 +25,14 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "aiohttp==3.12.13",
+    "aiohttp==3.12.14",
     "psutil>=6.0.0",
-    "py-clob-client==0.23.0",
+    "py-clob-client==0.24.0",
     "py-order-utils==0.3.2",
-    "pydantic==2.10.5",
+    "pydantic==2.11.7",
     "python-dotenv==1.1.1",
-    "requests==2.32.3",
-    "web3==7.12.0",
+    "requests==2.32.4",
+    "web3==7.12.1",
 ]
 
 [project.optional-dependencies]
