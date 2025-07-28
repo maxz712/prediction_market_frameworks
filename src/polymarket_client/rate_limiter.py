@@ -78,13 +78,16 @@ class TokenBucketRateLimiter:
         bucket["last_update"] = now
 
     def can_proceed(self, url: str) -> bool:
-        """Check if request can proceed without blocking."""
+        """Check if request can proceed without blocking and consume token if available."""
         bucket_key = self._get_bucket_key(url)
         bucket = self._get_bucket(bucket_key)
 
         with bucket["lock"]:
             self._refill_tokens(bucket)
-            return bucket["tokens"] >= 1.0
+            if bucket["tokens"] >= 1.0:
+                bucket["tokens"] -= 1.0
+                return True
+            return False
 
     def wait_if_needed(self, url: str, timeout: float | None = None) -> None:
         """
@@ -178,13 +181,16 @@ class SlidingWindowRateLimiter:
             window["requests"].popleft()
 
     def can_proceed(self, url: str) -> bool:
-        """Check if request can proceed without blocking."""
+        """Check if request can proceed without blocking and record request if allowed."""
         bucket_key = self._get_bucket_key(url)
         window = self._get_window(bucket_key)
 
         with window["lock"]:
             self._cleanup_old_requests(window)
-            return len(window["requests"]) < self.limit
+            if len(window["requests"]) < self.limit:
+                window["requests"].append(time.time())
+                return True
+            return False
 
     def wait_if_needed(self, url: str, timeout: float | None = None) -> None:
         """

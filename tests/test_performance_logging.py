@@ -139,11 +139,11 @@ class TestMeasurePerformance:
 class TestMemoryLogging:
     """Test memory usage logging."""
 
-    @patch("polymarket_client.logger.psutil")
-    def test_log_memory_usage_success(self, mock_psutil, caplog):
+    @patch("psutil.Process")
+    def test_log_memory_usage_success(self, mock_process_class, caplog):
         """Test successful memory logging."""
         # Mock psutil objects
-        mock_process = mock_psutil.Process.return_value
+        mock_process = mock_process_class.return_value
         mock_memory_info = mock_process.memory_info.return_value
         mock_memory_info.rss = 100 * 1024 * 1024  # 100 MB
         mock_memory_info.vms = 200 * 1024 * 1024  # 200 MB
@@ -164,13 +164,13 @@ class TestMemoryLogging:
         assert record.operation == "test_operation"
         assert record.metadata == {"context": "test"}
 
-    def test_log_memory_usage_no_psutil(self, caplog):
+    @patch("builtins.__import__", side_effect=ImportError("No module named 'psutil'"))
+    def test_log_memory_usage_no_psutil(self, mock_import, caplog):
         """Test memory logging when psutil is not available."""
         logger = logging.getLogger("test")
 
-        with patch("polymarket_client.logger.psutil", side_effect=ImportError):
-            with caplog.at_level(logging.WARNING):
-                log_memory_usage(logger)
+        with caplog.at_level(logging.WARNING):
+            log_memory_usage(logger)
 
         assert len(caplog.records) == 1
         record = caplog.records[0]

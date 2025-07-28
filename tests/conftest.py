@@ -20,6 +20,7 @@ def test_config():
             "clob": "https://test-clob.example.com",
             "info": "https://test-info.example.com",
             "neg_risk": "https://test-neg-risk.example.com",
+            "data_api": "https://test-data-api.example.com",
         },
         chain_id=137,
         timeout=30,

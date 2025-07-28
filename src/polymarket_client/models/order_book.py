@@ -86,7 +86,17 @@ class OrderBook(BaseModel):
         """Create OrderBook from raw bid/ask data with level conversion."""
 
         def convert_levels(raw_levels: list[Any], is_bid: bool = False) -> list[dict]:
-            parsed = [(float(r.price), float(r.size)) for r in raw_levels]
+            parsed = []
+            for r in raw_levels:
+                if hasattr(r, "price") and hasattr(r, "size"):
+                    # Object format
+                    parsed.append((float(r.price), float(r.size)))
+                elif isinstance(r, (list, tuple)) and len(r) >= 2:
+                    # List/tuple format
+                    parsed.append((float(r[0]), float(r[1])))
+                else:
+                    msg = f"Invalid level format: {r}"
+                    raise ValueError(msg)
             sorted_levels = (
                 sorted(parsed, key=lambda p: -p[0])
                 if is_bid

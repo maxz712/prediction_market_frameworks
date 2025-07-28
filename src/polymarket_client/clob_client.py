@@ -344,7 +344,8 @@ class _ClobClient:
         response.raise_for_status()
 
         activity_data = response.json()
-        return UserActivity.from_raw_data(activity_data)
+        activities_list = activity_data.get("activities", [])
+        return UserActivity.from_raw_data(activities_list)
 
     def get_current_user_activity(
         self,
